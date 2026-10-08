@@ -30,8 +30,22 @@
 
   <header class="topbar glass">
     <div class="brand">
-      <div class="logo">R</div>
-      <div class="brand-txt"><b>Resume Studio</b><small>A4 resume builder</small></div>
+      <div class="logo" role="button" tabindex="0" title="My resumes (Ctrl+O)" aria-label="My resumes">R</div>
+      <div class="brand-txt">
+        <b>Resume Studio</b>
+        <div class="doc-line">
+          <button type="button" class="doc-btn" id="docBtn" aria-haspopup="dialog" title="My resumes (Ctrl+O)">
+            <span class="doc-name" id="docName">&nbsp;</span>
+            <svg class="ico doc-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <span class="save-state" id="saveState" data-state="saving" role="status" aria-live="polite" title="Loading your resume…">
+            <svg class="ico ss-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <svg class="ico ss-busy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
+            <svg class="ico ss-err" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="save-txt">Loading…</span>
+          </span>
+        </div>
+      </div>
     </div>
 
     <nav class="mode-switch" id="modeSwitch" data-active="template" aria-label="Editor mode">
@@ -62,12 +76,33 @@
         <button type="button" class="btn ghost" id="fileMenuBtn">File
           <svg class="ico sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <div class="menu glass" id="fileMenu">
-          <button type="button" data-act="blank">New blank resume</button>
-          <button type="button" data-act="sample">Load sample resume</button>
+        <div class="menu glass file-menu" id="fileMenu">
+          <button type="button" data-act="docs">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <span>My resumes…</span><kbd>Ctrl O</kbd>
+          </button>
           <hr>
-          <button type="button" data-act="import">Import JSON…</button>
-          <button type="button" data-act="export">Export JSON</button>
+          <button type="button" data-act="blank">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <span>New blank resume</span>
+          </button>
+          <button type="button" data-act="sample">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+            <span>New from sample</span>
+          </button>
+          <button type="button" data-act="duplicate">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Duplicate this resume</span>
+          </button>
+          <hr>
+          <button type="button" data-act="import">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Import JSON…</span>
+          </button>
+          <button type="button" data-act="export">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export JSON</span>
+          </button>
         </div>
       </div>
       <div class="dropdown">
@@ -78,7 +113,9 @@
         </button>
         <div class="menu glass dl-menu" id="downloadMenu">
           <button type="button" data-dl="pdf"><span class="dl-badge pdf">PDF</span><span><b>PDF file</b><small>A4 pages, exactly as designed</small></span></button>
+          <button type="button" data-dl="png"><span class="dl-badge png">PNG</span><span><b>PNG image</b><small>High-res pages (2×), .zip if several</small></span></button>
           <button type="button" data-dl="excel"><span class="dl-badge xls">XLS</span><span><b>Excel workbook</b><small>Resume data in sheets (.xlsx)</small></span></button>
+          <button type="button" data-dl="txt"><span class="dl-badge txt">TXT</span><span><b>Plain text (.txt)</b><small>ATS-friendly text for job portals</small></span></button>
           <hr>
           <button type="button" data-dl="print"><span class="dl-badge prt">⎙</span><span><b>Print / Save as PDF</b><small>Browser print dialog, vector text</small></span></button>
           <button type="button" data-dl="json"><span class="dl-badge json">{ }</span><span><b>JSON backup</b><small>Re-import later to keep editing</small></span></button>
