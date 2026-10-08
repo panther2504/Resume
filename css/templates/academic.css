@@ -9,3 +9,118 @@
 .tpl-academic-scholar { --c-name: #1f2937; --c-date: #6b7280; }
 .tpl-academic-scholar .entry-title { font-weight: 600; font-size: calc(var(--fs) * 1.1); }
 .tpl-academic-scholar .entry-sub { font-style: italic; font-weight: 400; }
+
+/* =====================================================================================================
+   Academic collection. Colors come from variables (so dark sidebars / bands chosen by the user stay
+   readable); anything a knob controls is qualified with that knob's class.
+   ===================================================================================================== */
+
+/* shared fixes for the collection (all qualified with the knob classes they depend on):
+   - inline contacts + split header: the contacts are stacked, so hide the • separators
+   - compact entries: let the title/subtitle row take the free width so short titles do not wrap early */
+:is(.tpl-academic-thesis, .tpl-academic-lyceum, .tpl-academic-seminar, .tpl-academic-provost, .tpl-academic-docent, .tpl-academic-emeritus, .tpl-academic-dean, .tpl-academic-colloquium, .tpl-academic-fellow, .tpl-academic-atheneum, .tpl-academic-tenure, .tpl-academic-monograph).hv-split.cv-inline .hdr-top .ci-sep { display: none; }
+:is(.tpl-academic-thesis, .tpl-academic-lyceum, .tpl-academic-seminar, .tpl-academic-provost, .tpl-academic-docent, .tpl-academic-emeritus, .tpl-academic-dean, .tpl-academic-colloquium, .tpl-academic-fellow, .tpl-academic-atheneum, .tpl-academic-tenure, .tpl-academic-monograph).ev-compact .col-main .entry-main { flex: 1 1 auto; }
+
+/* ---------- Thesis: split header, hairline titles, right-aligned accent dates in a left column ---------- */
+.tpl-academic-thesis { --c-name: color-mix(in srgb, var(--accent) 30%, #0b0d12); --c-date: var(--accent); --date-w: 23mm; }
+.tpl-academic-thesis .name { letter-spacing: -.005em; }
+.tpl-academic-thesis.hv-split .hdr-top .contacts { border-left-width: 1.5px; }
+.tpl-academic-thesis .sec-title h2 { letter-spacing: .12em; }
+.tpl-academic-thesis .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.06); }
+.tpl-academic-thesis.ev-date-left .col-main .entry-date { text-align: right; }
+.tpl-academic-thesis.pd-top-stripe { --decor-w: calc(var(--pad) * .16); }
+
+/* ---------- Lyceum: centered navy band, titles over a double rule ---------- */
+.tpl-academic-lyceum.hv-band-centered .hdr-top { padding-top: calc(var(--pad) * .85); padding-bottom: calc(var(--pad) * .8); gap: 2mm; }
+.tpl-academic-lyceum.hv-band-centered .hdr-top .contacts { margin-top: 1mm; }
+.tpl-academic-lyceum.nc-upper .name { letter-spacing: .07em; }
+.tpl-academic-lyceum .sec-title h2 { letter-spacing: .14em; }
+.tpl-academic-lyceum.ts-underline-full .sec-line { height: 4px; margin-top: 3px; border-radius: 0; background: none; border-top: 1.5px solid var(--c-line); border-bottom: 1px solid var(--c-line); }
+.tpl-academic-lyceum .entry-title { font-family: var(--font-head); font-weight: 600; }
+.tpl-academic-lyceum .entry-sub { font-style: italic; font-weight: 400; }
+.tpl-academic-lyceum:not(.ev-date-pill) .entry-date { font-style: italic; font-weight: 400; font-size: calc(var(--fs) * .92); }
+
+/* ---------- Seminar: dense one-line entries, header closed by an accent rule ---------- */
+.tpl-academic-seminar { --c-name: color-mix(in srgb, var(--accent) 30%, #0b0d0c); }
+.tpl-academic-seminar.hv-compact .hdr-top { margin: 0 var(--pad); padding-left: 0; padding-right: 0; padding-bottom: 2.6mm; border-bottom: 2px solid var(--c-line); }
+.tpl-academic-seminar.ts-bar-left .sec-title { border-left-width: 3px; padding-left: 2.4mm; }
+.tpl-academic-seminar .entry-title { font-weight: 700; }
+.tpl-academic-seminar .entry-date { font-variant-numeric: tabular-nums; }
+
+/* ---------- Provost: display-serif name and titles (DM Serif Display has a single 400 weight) ---------- */
+.tpl-academic-provost { --c-name: color-mix(in srgb, var(--accent) 12%, #1c1917); }
+.tpl-academic-provost .sec-title h2 { font-weight: 400; text-transform: none; letter-spacing: .005em; }
+.tpl-academic-provost.ts-overline .sec-title { border-top-width: 2px; padding-top: 1.8mm; }
+.tpl-academic-provost .entry-title { font-family: var(--font-head); font-weight: 400; font-size: calc(var(--fs) * 1.16); letter-spacing: .005em; }
+/* date and institution share the line under the title: "MAR 2021 – PRESENT  Lumen Financial • San Francisco" (row flexbox) */
+.tpl-academic-provost.ev-inline-date .entry-head { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: baseline; column-gap: .7em; }
+.tpl-academic-provost.ev-inline-date .entry-title { flex: 1 0 100%; }
+.tpl-academic-provost.ev-inline-date .entry-date { font-size: calc(var(--fs) * .8); letter-spacing: .06em; text-transform: uppercase; }
+.tpl-academic-provost.ev-inline-date .entry-sub { min-width: 0; }
+
+/* ---------- Docent: teaching CV, tinted header, boxed titles ---------- */
+.tpl-academic-docent { --c-photo-line: var(--accent); --photo-bw: 2px; }
+.tpl-academic-docent .entry-title { font-family: var(--font-head); font-size: calc(var(--fs) * .98); }
+.tpl-academic-docent .sec-title h2 { letter-spacing: .12em; }
+.tpl-academic-docent.pd-bottom-stripe { --decor-w: calc(var(--pad) * .2); }
+
+/* ---------- Emeritus: monochrome typeset CV ---------- */
+.tpl-academic-emeritus { --c-name: #111; --c-text: #262626; --c-sub: #404040; --c-date: #404040; --date-w: 24mm; }
+.tpl-academic-emeritus .name { letter-spacing: .005em; }
+.tpl-academic-emeritus.hv-underline .hdr-top { border-bottom-width: 2.5px; }
+.tpl-academic-emeritus.ts-plain-bold .sec-title h2 { font-size: calc(var(--fs) * 1.3 * var(--title-scale, 1)); }
+.tpl-academic-emeritus .entry-sub { font-style: italic; font-weight: 400; }
+.tpl-academic-emeritus .entry-date { font-weight: 400; }
+
+/* ---------- Dean: centered header inside a double (diploma) frame; hairline-ruled entries ---------- */
+.tpl-academic-dean { --c-name: color-mix(in srgb, var(--accent) 30%, #0d0b0d); --c-rule: color-mix(in srgb, var(--accent) 16%, #e5e7eb); }
+.tpl-academic-dean.hv-boxed .hdr-top { flex-direction: column; flex-wrap: nowrap; text-align: center; gap: 2mm; padding: 5mm 8mm 4.6mm; border: 4px double var(--c-line); border-radius: 0; }
+.tpl-academic-dean.hv-boxed .hdr-top .contacts { flex-basis: auto; justify-content: center; }
+.tpl-academic-dean .sec-title h2 { letter-spacing: .16em; font-weight: 600; }
+.tpl-academic-dean.ts-centered .sec-line { width: 26px; height: 1.5px; margin-top: 3px; }
+.tpl-academic-dean .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.14); }
+.tpl-academic-dean .entry-sub { font-style: italic; font-weight: 400; }
+
+/* ---------- Colloquium: leftbar name, numbered sections, italic dates in a left column ---------- */
+.tpl-academic-colloquium { --c-name: color-mix(in srgb, var(--accent) 40%, #0b0d12); --date-w: 22mm; }
+.tpl-academic-colloquium.hv-leftbar .hdr-top .hdr-text { border-left-width: 4px; padding-left: 4mm; }
+.tpl-academic-colloquium .sec-title h2 { letter-spacing: .1em; }
+.tpl-academic-colloquium.ts-numbered .sec-num { font-weight: 600; }
+.tpl-academic-colloquium .entry-title { font-weight: 600; }
+.tpl-academic-colloquium .entry-sub { font-style: italic; font-weight: 400; }
+.tpl-academic-colloquium:not(.ev-date-pill) .entry-date { font-style: italic; font-weight: 400; }
+
+/* ---------- Fellow: forest name, hairline full rules, right sidebar ---------- */
+.tpl-academic-fellow { --c-name: var(--accent); --side-tint: color-mix(in srgb, var(--accent) 6%, #fff); --date-w: 22mm; }
+.tpl-academic-fellow .sec-title h2 { letter-spacing: .12em; font-weight: 600; }
+.tpl-academic-fellow.ts-underline-full .sec-line { height: 1px; margin-top: 3px; border-radius: 0; }
+.tpl-academic-fellow .entry-title { font-family: var(--font-head); font-weight: 600; }
+.tpl-academic-fellow .col-main .entry-title { font-size: calc(var(--fs) * 1.12); }
+.tpl-academic-fellow .col-side .skill-name { font-size: calc(var(--fs) * .92); }
+
+/* ---------- Atheneum: oxblood crest at the top of the sidebar ---------- */
+.tpl-academic-atheneum { --side-tint: color-mix(in srgb, var(--accent) 5%, #fbf8f6); }
+.tpl-academic-atheneum.hv-band .hdr-side { padding-bottom: 7mm; }
+.tpl-academic-atheneum.hv-band .hdr-side .contacts { padding-top: 3.5mm; border-top: 1px solid var(--c-rule); font-size: calc(var(--fs) * .86); }
+.tpl-academic-atheneum .sec-title h2 { letter-spacing: .14em; }
+.tpl-academic-atheneum .entry-title { font-family: var(--font-head); font-weight: 600; }
+.tpl-academic-atheneum .col-main .entry-title { font-size: calc(var(--fs) * 1.1); }
+.tpl-academic-atheneum .col-side > .skill + .skill { margin-top: calc(var(--gap) * .45); }
+
+/* ---------- Tenure: slim hairline-divided sidebar, accent rule under the header, refined dotted rules ---------- */
+.tpl-academic-tenure { --c-name: color-mix(in srgb, var(--accent) 55%, #0b0d12); }
+.tpl-academic-tenure.ts-dotted .sec-line { border-top-width: 1.5px; margin-top: 3px; }
+.tpl-academic-tenure .sec-title h2 { letter-spacing: .12em; }
+.tpl-academic-tenure .entry-title { font-weight: 700; }
+.tpl-academic-tenure.ev-inline-date .entry-date { font-weight: 700; letter-spacing: .02em; }
+.tpl-academic-tenure .col-side .skill-name { font-size: calc(var(--fs) * .92); }
+.tpl-academic-tenure .dots { gap: 3px; }
+.tpl-academic-tenure .dots i { width: 7px; height: 7px; }
+
+/* ---------- Monograph: deep accent sidebar on the right with the name, sans headings, serif text ---------- */
+.tpl-academic-monograph { --c-name: color-mix(in srgb, var(--accent) 45%, #0b0d12); }
+.tpl-academic-monograph .name { letter-spacing: -.01em; line-height: 1.12; }
+.tpl-academic-monograph .sec-title h2 { letter-spacing: .14em; font-size: calc(var(--fs) * .98 * var(--title-scale, 1)); }
+.tpl-academic-monograph .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.02); }
+.tpl-academic-monograph .hdr-side .contacts { font-size: calc(var(--fs) * .84); }
+.tpl-academic-monograph .col-side > .skill + .skill { margin-top: calc(var(--gap) * .45); }
