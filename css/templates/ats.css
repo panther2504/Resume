@@ -4,3 +4,79 @@
    - To tweak something a knob controls, qualify with the knob class so it switches off when the user
      overrides that knob: .tpl-x.hv-band .name { … }   .tpl-x.ts-pill .sec-title h2 { … }
    - Never put visible content in ::before/::after, never change .page/.pg-cols/.col sizes or positions. */
+
+/* ---------------------------------------------------------------------------------------------------
+   Shared (new ATS templates only): with entry 'compact' the title is capped at 62% of the title/subtitle
+   block — let that block take the whole row so the cap is measured against the line, not against the
+   shrink-wrapped text (otherwise short titles such as "Google UX Design Certificate" wrap early).
+   --------------------------------------------------------------------------------------------------- */
+:is(.tpl-ats-standard, .tpl-ats-direct, .tpl-ats-focus, .tpl-ats-plain, .tpl-ats-core, .tpl-ats-lucid,
+    .tpl-ats-exact, .tpl-ats-crisp, .tpl-ats-candid, .tpl-ats-concise, .tpl-ats-steady, .tpl-ats-linear).ev-compact .col-main .entry-main { flex: 1 1 auto; }
+
+/* Standard — Times, centered uppercase name, ink hairlines, italic employers, regular-weight dates */
+.tpl-ats-standard { --c-date: #374151; }
+.rpage.tpl-ats-standard.nc-upper .name { letter-spacing: .07em; }
+.tpl-ats-standard .sec-title h2 { letter-spacing: .12em; }
+.rpage.tpl-ats-standard.ts-underline-full .sec-line { height: 1px; margin-top: 3px; border-radius: 0; }
+.tpl-ats-standard .entry-sub { font-style: italic; font-weight: 400; }
+.tpl-ats-standard .entry-date { font-weight: 400; font-size: calc(var(--fs) * .92); }
+
+/* Direct — heavier header rule, ink dates, slightly larger entry titles */
+.tpl-ats-direct { --c-date: #1f2937; }
+.tpl-ats-direct .name { letter-spacing: -.015em; }
+.rpage.tpl-ats-direct.hv-underline .hdr-top { border-bottom-width: 4px; }
+.tpl-ats-direct .sec-title h2 { letter-spacing: .1em; }
+.tpl-ats-direct .entry-title { font-size: calc(var(--fs) * 1.08); }
+
+/* Focus — tight heavy name; with the accent bar the title text turns ink so the bar carries the color */
+.tpl-ats-focus .name { letter-spacing: -.03em; }
+.rpage.tpl-ats-focus.ts-bar-left { --c-title: var(--c-ink); }
+.rpage.tpl-ats-focus.ts-bar-left .sec-title { border-left-width: 5px; padding-left: 2.6mm; }
+.rpage.tpl-ats-focus.ev-inline-date .entry-date { font-size: calc(var(--fs) * .84); letter-spacing: .02em; }
+
+/* Plain — quiet slate hairlines, spaced small-caps titles */
+.tpl-ats-plain .sec-title h2 { letter-spacing: .12em; }
+.tpl-ats-plain .entry-date { font-weight: 500; }
+
+/* Core — thinner overline, wider date column */
+.tpl-ats-core { --date-w: 28mm; }
+.rpage.tpl-ats-core.nc-upper .name { letter-spacing: .05em; }
+.rpage.tpl-ats-core.ts-overline .sec-title { border-top-width: 2px; padding-top: 1.8mm; }
+.tpl-ats-core .sec-title h2 { letter-spacing: .12em; }
+
+/* Lucid — light name, finer dotted rules, wide-tracked role */
+.tpl-ats-lucid .name { letter-spacing: .01em; }
+.rpage.tpl-ats-lucid.rs-caps .role { letter-spacing: .28em; }
+.tpl-ats-lucid .sec-title h2 { letter-spacing: .14em; }
+.rpage.tpl-ats-lucid.ts-dotted .sec-line { border-top-width: 1.5px; margin-top: 3px; }
+
+/* Exact — sentence-case Georgia titles in the accent color, Georgia entry titles */
+.rpage.tpl-ats-exact.ts-plain-bold .sec-title h2 { color: var(--c-title); }
+.tpl-ats-exact .entry-title { font-family: var(--font-head); font-size: calc(var(--fs) * 1.08); }
+.rpage.tpl-ats-exact.hv-compact .hdr-top { margin: 0 var(--pad) calc(var(--pad) * .2); padding-left: 0; padding-right: 0; padding-bottom: calc(var(--pad) * .45); border-bottom: 1px solid var(--c-rule); }
+
+/* Crisp — accent name over a hairline rule, wider short bars */
+.tpl-ats-crisp { --c-name: var(--accent); }
+.rpage.tpl-ats-crisp.hv-underline .hdr-top { border-bottom-width: 1px; border-bottom-color: var(--c-line-soft); }
+.rpage.tpl-ats-crisp.ts-underline-short .sec-line { width: 34px; height: 3px; border-radius: 0; }
+
+/* Candid — soft marker behind the title, normal-weight Georgia name */
+.tpl-ats-candid { --c-mark: color-mix(in srgb, var(--accent) 22%, #fff); }
+.tpl-ats-candid .name { letter-spacing: .01em; }
+.tpl-ats-candid .entry-title { font-family: var(--font-head); }
+.rpage.tpl-ats-candid.ts-highlight .sec-title h2 { padding: .05em .4em; letter-spacing: .12em; background-image: linear-gradient(transparent 28%, var(--c-mark) 28%, var(--c-mark) 96%, transparent 96%); }
+
+/* Concise — black-weight small caps name, narrow date column */
+.tpl-ats-concise { --date-w: 27mm; }
+.rpage.tpl-ats-concise.ev-date-left .col-main .entry-date { font-size: calc(var(--fs) * .8); letter-spacing: .01em; }
+.rpage.tpl-ats-concise.nc-upper .name { letter-spacing: .06em; }
+.tpl-ats-concise .sec-title h2 { letter-spacing: .16em; }
+
+/* Steady — serif titles between hairlines, serif entry titles */
+.tpl-ats-steady .sec-title h2 { letter-spacing: .14em; font-weight: 700; }
+.tpl-ats-steady .entry-title { font-family: var(--font-head); font-size: calc(var(--fs) * 1.1); }
+.rpage.tpl-ats-steady.ts-ruled-both .sec-rule-l, .rpage.tpl-ats-steady.ts-ruled-both .sec-line { background: color-mix(in srgb, var(--c-line) 60%, #fff); }
+
+/* Linear — ink rule under the header, slim date tabs */
+.rpage.tpl-ats-linear.hv-underline .hdr-top { border-bottom-width: 2px; border-bottom-color: var(--c-ink); }
+.rpage.tpl-ats-linear.ev-date-pill .entry-date { border-radius: 2px; font-weight: 600; letter-spacing: .02em; }
