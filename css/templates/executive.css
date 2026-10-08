@@ -8,3 +8,143 @@
 /* Sterling (reference): wider letter-spacing on the name only while the dark band is used */
 .tpl-executive-sterling.hv-band-dark .name { font-weight: 600; letter-spacing: .08em; }
 .tpl-executive-sterling .entry-title { font-family: var(--font-head); font-weight: 600; }
+
+/* ===== Sovereign — navy band, gold rule under it, gold-ruled centered titles ===== */
+.tpl-executive-sovereign {
+  --c-line: var(--accent-2);
+  --c-date: #5b6472;
+  --head-role: color-mix(in srgb, var(--accent-2) 45%, #fff);
+  --head-fill: color-mix(in srgb, var(--accent-2) 55%, #fff);
+}
+.tpl-executive-sovereign.hv-band-centered .pg-header { border-bottom: 3px solid var(--accent-2); }
+.tpl-executive-sovereign.hv-band-centered .name { letter-spacing: .09em; }
+.tpl-executive-sovereign.ts-ruled-both .sec-title h2 { letter-spacing: .2em; }
+.tpl-executive-sovereign .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.1); }
+
+/* ===== Ledger — brass details, boxed section bars, accent date column ===== */
+.tpl-executive-ledger { --c-date: var(--accent); --decor-c: var(--accent-2); --date-w: 30mm; }
+.tpl-executive-ledger.hv-split .hdr-top .contacts { border-left-color: var(--accent-2); }
+.tpl-executive-ledger.ts-boxed .sec-title { border-left-width: 4px; border-radius: 0; }
+.tpl-executive-ledger .entry-title { font-family: var(--font-head); font-size: calc(var(--fs) * .98); }
+.tpl-executive-ledger.ev-date-left .col-main .entry-date { font-weight: 700; }
+
+/* ===== Regent — oxblood sidebar with gold fills and titles ===== */
+.tpl-executive-regent {
+  --side-fill: color-mix(in srgb, var(--accent-2) 70%, #fff);
+  --side-title: var(--side-fill);
+  --side-on-fill: #241014;
+  --col-pt: calc(var(--pad) * 1.25);
+  --photo-bw: 2px;
+}
+.tpl-executive-regent.sv-accent .col-side { --c-photo-line: var(--side-fill); }
+.tpl-executive-regent.ts-bar-left .col-main .sec-title { border-left-color: var(--accent-2); }
+.tpl-executive-regent .sec-title h2 { letter-spacing: .12em; }
+.tpl-executive-regent .entry-title { font-family: var(--font-head); font-weight: 400; font-size: calc(var(--fs) * 1.12); }
+.tpl-executive-regent .col-side .entry-title { font-size: calc(var(--fs) * 1.02); }
+.tpl-executive-regent .hdr-side .contacts { font-size: calc(var(--fs) * .88); }
+
+/* ===== Bullion — charcoal band with a gold base rule, soft gold date bars ===== */
+.tpl-executive-bullion {
+  --c-line-soft: color-mix(in srgb, var(--accent-2) 50%, #fff);
+  --c-chip-line: color-mix(in srgb, var(--accent-2) 70%, #fff);
+  --head-role: color-mix(in srgb, var(--accent-2) 60%, #fff);
+  --head-fill: color-mix(in srgb, var(--accent-2) 60%, #fff);
+}
+.tpl-executive-bullion.hv-band-dark .pg-header { border-bottom: 4px solid var(--accent-2); }
+.tpl-executive-bullion.hv-band-dark .name { letter-spacing: .06em; }
+.tpl-executive-bullion.hv-band-dark .hdr-top { flex-direction: row-reverse; }
+.tpl-executive-bullion .sec-title h2 { font-weight: 500; letter-spacing: .12em; }
+.tpl-executive-bullion .entry-title { font-family: var(--font-head); font-weight: 500; letter-spacing: .02em; font-size: calc(var(--fs) * 1.1); }
+.tpl-executive-bullion.ev-date-pill .entry-date {
+  background: color-mix(in srgb, var(--accent-2) 20%, #fff);
+  color: color-mix(in srgb, var(--accent-2) 55%, #000);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 50%, #fff);
+}
+
+/* ===== Treasury — petrol band with a bronze base rule, warm paper sidebar with a bronze edge, bronze numbers ===== */
+.tpl-executive-treasury {
+  --side-edge: var(--accent-2);
+  --side-soft: color-mix(in srgb, var(--accent-2) 6%, #fafaf8);
+  --head-role: color-mix(in srgb, var(--accent-2) 45%, #fff);
+  --head-fill: color-mix(in srgb, var(--accent-2) 45%, #fff);
+}
+.tpl-executive-treasury.hv-band .pg-header { border-bottom: 3px solid var(--accent-2); }
+.tpl-executive-treasury.ts-numbered .col-main .sec-num,
+.tpl-executive-treasury.ts-numbered:not(.side-dark) .col-side .sec-num { color: color-mix(in srgb, var(--accent-2) 78%, #000); }
+.tpl-executive-treasury .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.08); }
+
+/* ===== Magnate — navy gradient band, bold Raleway caps titles, cards with an accent edge ===== */
+.tpl-executive-magnate { --c-card: color-mix(in srgb, var(--accent) 5%, #f8fafc); }
+.tpl-executive-magnate .sec-title h2 { font-weight: 800; letter-spacing: .14em; }
+.tpl-executive-magnate.ts-underline-short .sec-line { width: 34px; height: 3px; border-radius: 0; }
+.tpl-executive-magnate.ev-card .entry { border-left: 3px solid var(--c-acc); border-radius: 0 6px 6px 0; }
+.tpl-executive-magnate .entry-title { font-family: var(--font-head); font-weight: 700; }
+/* narrow sidebar: entries stay flat (a thin accent edge only) so certificates do not get cramped cards */
+.tpl-executive-magnate.ev-card .col-side .entry { padding: 0 0 0 3mm; background: none; border-left-width: 2px; border-radius: 0; }
+
+/* ===== Argent — silver header tint, silver hairlines, Garamond entry titles ===== */
+.tpl-executive-argent {
+  --head-tint: color-mix(in srgb, var(--accent-2) 15%, #fff);
+  --side-rule: color-mix(in srgb, var(--accent-2) 45%, #fff);
+  --c-line-soft: color-mix(in srgb, var(--accent-2) 55%, #fff);
+  --c-photo-bg: color-mix(in srgb, var(--accent-2) 28%, #fff);
+}
+.tpl-executive-argent .sec-title h2 { font-weight: 600; letter-spacing: .22em; }
+.tpl-executive-argent .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.2); }
+.tpl-executive-argent.hv-tinted .pg-header { border-bottom: 1px solid var(--accent-2); }
+
+/* ===== Gilt — gold page frame, gold header box and title bars, espresso ink ===== */
+.tpl-executive-gilt { --decor-c: var(--accent-2); --c-line: var(--accent-2); --c-date: #6b6258; --c-photo-bg: color-mix(in srgb, var(--accent-2) 18%, #fff); }
+.tpl-executive-gilt.ts-centered .sec-title h2 { letter-spacing: .2em; font-weight: 600; }
+.tpl-executive-gilt.ts-centered .sec-line { width: 44px; height: 1.5px; }
+.tpl-executive-gilt .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.08); }
+/* one-line entries use the full row, so short subtitles never squeeze the title onto two lines */
+.tpl-executive-gilt.ev-compact .col-main .entry-main { flex: 1 1 auto; }
+
+/* ===== Chancellor — warm paper sidebar, sentence-case serif titles in the accent ===== */
+.tpl-executive-chancellor { --side-tint: color-mix(in srgb, var(--accent) 6%, #fbfaf7); }
+.tpl-executive-chancellor.ts-plain-bold .sec-title h2 { color: var(--c-title); }
+.tpl-executive-chancellor.hv-underline .pg-header { padding-bottom: 4mm; }
+.tpl-executive-chancellor .entry-title { font-family: var(--font-head); font-size: calc(var(--fs) * .98); }
+
+/* ===== Crest — gold bar beside the name, midnight sidebar with gold fills, gold page edge ===== */
+.tpl-executive-crest {
+  --side-bg: color-mix(in srgb, var(--accent) 55%, #0b1220);
+  --side-fill: color-mix(in srgb, var(--accent-2) 75%, #fff);
+  --side-on-fill: #14181f;
+  --decor-c: var(--accent-2);
+}
+.tpl-executive-crest.hv-leftbar .hdr-top .hdr-text { border-left-color: var(--accent-2); }
+.tpl-executive-crest.ts-underline-full .sec-line { height: 1.5px; }
+.tpl-executive-crest .entry-title { font-family: var(--font-head); font-weight: 600; font-size: calc(var(--fs) * 1.08); }
+
+/* ===== Bourse — deep green gradient sidebar, heavy overline titles, green date column ===== */
+.tpl-executive-bourse { --date-w: 17.5mm; --c-date: var(--accent); }
+.tpl-executive-bourse.ts-overline .sec-title { border-top-width: 4px; }
+.tpl-executive-bourse .sec-title h2 { letter-spacing: .12em; }
+
+/* ===== Ingot — bronze name block on a charcoal sidebar, bronze dotted rules in the main column ===== */
+.tpl-executive-ingot {
+  --head-bg: color-mix(in srgb, var(--accent-2) 80%, #000);
+  --side-fill: color-mix(in srgb, var(--accent-2) 45%, #fff);
+  --side-on-fill: #1d1f23;
+  --col-pt: calc(var(--pad) * 1.1);
+}
+.tpl-executive-ingot.ts-dotted .col-main .sec-line { border-top-color: var(--accent-2); }
+.tpl-executive-ingot .entry-title { font-family: var(--font-head); font-weight: 400; font-size: calc(var(--fs) * 1.15); }
+
+/* ===== Shared: templates whose accent-2 is a light metal (gold, bronze, silver) =====
+   accent-2 is meant for rules, edges and fills. If the user switches to a gradient header or sidebar, the gradient
+   would end on that light metal under white text, so it ends on a deepened shade instead (contrast stays >= 4.5:1). */
+:is(.tpl-executive-sovereign, .tpl-executive-ledger, .tpl-executive-regent, .tpl-executive-bullion, .tpl-executive-treasury,
+  .tpl-executive-argent, .tpl-executive-gilt, .tpl-executive-chancellor, .tpl-executive-crest, .tpl-executive-ingot) {
+  --side-grad-2: color-mix(in srgb, var(--accent-2) 50%, #000);
+}
+:is(.tpl-executive-sovereign, .tpl-executive-ledger, .tpl-executive-regent, .tpl-executive-bullion, .tpl-executive-treasury,
+  .tpl-executive-argent, .tpl-executive-gilt, .tpl-executive-chancellor, .tpl-executive-crest, .tpl-executive-ingot).hv-gradient .pg-header {
+  background-image: linear-gradient(118deg, var(--accent) 0%, color-mix(in srgb, var(--accent-2) 50%, #000) 100%);
+}
+:is(.tpl-executive-sovereign, .tpl-executive-ledger, .tpl-executive-regent, .tpl-executive-bullion, .tpl-executive-treasury,
+  .tpl-executive-argent, .tpl-executive-gilt, .tpl-executive-chancellor, .tpl-executive-crest, .tpl-executive-ingot).hv-gradient .hdr-side {
+  background-image: linear-gradient(160deg, var(--accent) 0%, color-mix(in srgb, var(--accent-2) 50%, #000) 100%);
+}
