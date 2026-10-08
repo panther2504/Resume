@@ -9,7 +9,7 @@
   position: relative;
   background: #fff;
   border-radius: 3px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .08);
+  box-shadow: var(--page-shadow, 0 24px 60px rgba(0, 0, 0, .45));
 }
 .page {
   width: 210mm;

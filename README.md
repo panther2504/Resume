@@ -22,6 +22,7 @@ A professional A4 resume builder written in plain HTML, CSS and JavaScript. Ther
 - Start from a blank page, a starter layout, or **convert the current template** into freely editable elements.
 
 **General**
+- Light and dark mode switch in the top bar. It follows your system setting until you choose one, and remembers your choice.
 - Undo and redo (Ctrl+Z / Ctrl+Y). Changes are saved automatically in the browser.
 - Import and export your resume as JSON.
 - **Download PDF** opens the print dialog with exact A4 pages. Choose "Save as PDF" and set margins to None.

@@ -94,6 +94,33 @@ const App = {
     $('#pageInfo').textContent = `A4 · ${n} page${n > 1 ? 's' : ''}`;
   },
 
+  /* ----- light / dark theme (a UI preference, kept outside resume data and undo history) ----- */
+  THEME_KEY: 'resume-studio:theme',
+  setTheme(theme, persist = true) {
+    document.documentElement.dataset.theme = theme;
+    const sw = $('#themeSwitch');
+    sw.setAttribute('aria-checked', String(theme === 'light'));
+    sw.title = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+    if (persist) { try { localStorage.setItem(this.THEME_KEY, theme); } catch { /* storage unavailable */ } }
+  },
+  initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem(this.THEME_KEY); } catch { /* storage unavailable */ }
+    const mq = window.matchMedia('(prefers-color-scheme: light)');
+    this.setTheme(saved || (mq.matches ? 'light' : 'dark'), false);
+    // follow the OS setting until the user picks a theme explicitly
+    mq.addEventListener('change', (e) => {
+      let picked = null;
+      try { picked = localStorage.getItem(this.THEME_KEY); } catch { /* storage unavailable */ }
+      if (!picked) this.setTheme(e.matches ? 'light' : 'dark', false);
+    });
+    $('#themeSwitch').addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+      this.setTheme(next);
+      toast(next === 'light' ? 'Light mode' : 'Dark mode');
+    });
+  },
+
   /* ----- modes, tabs, zoom ----- */
   setMode(mode) {
     if (this.state.mode === 'canvas' && mode !== 'canvas') Canvas.deselect();
@@ -237,6 +264,7 @@ const App = {
 
   init() {
     this.state = this.load() || this.fresh();
+    this.initTheme();
     this.bindUI();
     Canvas.init();
     Editor.build();
