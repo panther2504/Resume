@@ -200,7 +200,20 @@ const App = {
     $('#zoomIn').addEventListener('click', () => this.setZoom(this.state.zoom + 0.1));
     $('#zoomOut').addEventListener('click', () => this.setZoom(this.state.zoom - 0.1));
     $('#zoomFit').addEventListener('click', () => this.fitZoom());
-    $('#downloadBtn').addEventListener('click', () => this.print());
+    const dlMenu = $('#downloadMenu');
+    $('#downloadBtn').addEventListener('click', (e) => { e.stopPropagation(); $('#fileMenu').classList.remove('open'); dlMenu.classList.toggle('open'); });
+    document.addEventListener('click', () => dlMenu.classList.remove('open'));
+    dlMenu.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-dl]')?.dataset.dl;
+      if (!a) return;
+      dlMenu.classList.remove('open');
+      ({
+        pdf: () => Exporter.pdf($('#downloadBtn')),
+        excel: () => Exporter.excel(),
+        print: () => this.print(),
+        json: () => this.exportJSON(),
+      })[a]?.();
+    });
 
     ['#tplStage', '#cvStage'].forEach((s) => $(s).addEventListener('wheel', (e) => {
       if (!e.ctrlKey && !e.metaKey) return;
@@ -209,7 +222,7 @@ const App = {
     }, { passive: false }));
 
     const menu = $('#fileMenu');
-    $('#fileMenuBtn').addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
+    $('#fileMenuBtn').addEventListener('click', (e) => { e.stopPropagation(); $('#downloadMenu').classList.remove('open'); menu.classList.toggle('open'); });
     document.addEventListener('click', () => menu.classList.remove('open'));
     const fileInput = $('#importInput');
     fileInput.addEventListener('change', () => { if (fileInput.files[0]) this.importJSON(fileInput.files[0]); fileInput.value = ''; });
@@ -222,7 +235,6 @@ const App = {
         sample: () => this.newResume(true),
         import: () => fileInput.click(),
         export: () => this.exportJSON(),
-        pdf: () => this.print(),
       })[a]?.();
     });
 

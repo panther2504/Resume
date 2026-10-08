@@ -25,7 +25,11 @@ A professional A4 resume builder written in plain HTML, CSS and JavaScript. Ther
 - Light and dark mode switch in the top bar. It follows your system setting until you choose one, and remembers your choice.
 - Undo and redo (Ctrl+Z / Ctrl+Y). Changes are saved automatically in the browser.
 - Import and export your resume as JSON.
-- **Download PDF** opens the print dialog with exact A4 pages. Choose "Save as PDF" and set margins to None.
+- **Download** menu (works offline, no external libraries):
+  - **PDF file**: a real `.pdf` with one A4 page per resume page, drawn exactly as on screen with the real fonts. It includes an invisible text layer, so the text can still be selected and searched, and job-portal (ATS) parsers can read it.
+  - **Excel workbook** (`.xlsx`): a "Resume" overview sheet plus one formatted table per section (experience, education, skills with ratings, and so on).
+  - **Print / Save as PDF**: the browser print dialog, which gives sharp vector text. Choose "Save as PDF" and set margins to None.
+  - **JSON backup**: import it later to keep editing.
 
 ## Structure
 
@@ -37,5 +41,6 @@ js/data.js          helpers, icons, fonts, templates, sample data
 js/render.js        template renderer and A4 pagination
 js/editor.js        content forms, design panel, template gallery
 js/canvas.js        canvas designer and properties panel
+js/export.js        PDF writer (page rendering + text layer) and XLSX writer
 js/app.js           state, undo/redo history, saving, zoom, export
 ```

@@ -83,6 +83,7 @@ const Snap = (() => {
     if (!isRoot && (empty || media || flexNone)) out.push(`width:${cs.width}`);
     if (!isRoot && (empty || media || src.classList.contains('photo'))) out.push(`height:${cs.height}`);
     if (isRoot) out.push('width:100%');
+    if (isRoot && src.classList.contains('photo')) out.push(`height:${cs.height}`);
     if (tag === 'svg') out.push(`stroke:${cs.stroke}`, `fill:${cs.fill}`, `stroke-width:${cs.strokeWidth}`);
     return out.join(';');
   }

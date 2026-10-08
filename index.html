@@ -63,14 +63,22 @@
           <hr>
           <button type="button" data-act="import">Import JSON…</button>
           <button type="button" data-act="export">Export JSON</button>
-          <hr>
-          <button type="button" data-act="pdf">Print / Save as PDF</button>
         </div>
       </div>
-      <button type="button" class="btn primary" id="downloadBtn">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Download PDF</span>
-      </button>
+      <div class="dropdown">
+        <button type="button" class="btn primary" id="downloadBtn" aria-haspopup="true">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Download</span>
+          <svg class="ico sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="menu glass dl-menu" id="downloadMenu">
+          <button type="button" data-dl="pdf"><span class="dl-badge pdf">PDF</span><span><b>PDF file</b><small>A4 pages, exactly as designed</small></span></button>
+          <button type="button" data-dl="excel"><span class="dl-badge xls">XLS</span><span><b>Excel workbook</b><small>Resume data in sheets (.xlsx)</small></span></button>
+          <hr>
+          <button type="button" data-dl="print"><span class="dl-badge prt">⎙</span><span><b>Print / Save as PDF</b><small>Browser print dialog, vector text</small></span></button>
+          <button type="button" data-dl="json"><span class="dl-badge json">{ }</span><span><b>JSON backup</b><small>Re-import later to keep editing</small></span></button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -142,6 +150,7 @@
   </main>
 
   <div id="measureHost" class="pages" aria-hidden="true"></div>
+  <div id="exportHost" class="pages" aria-hidden="true"></div>
   <input type="file" id="importInput" accept=".json,application/json" hidden>
   <div id="toast" role="status" aria-live="polite"></div>
 
@@ -149,6 +158,7 @@
   <script src="js/render.js"></script>
   <script src="js/editor.js"></script>
   <script src="js/canvas.js"></script>
+  <script src="js/export.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
