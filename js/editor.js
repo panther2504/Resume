@@ -281,6 +281,29 @@ const Design = (() => {
       h('option', { value: '', selected: !cur }, `Template default (${def})`),
       FONTS.map(([f]) => h('option', { value: f, selected: cur === f, style: { fontFamily: fontStack(f) } }, f)));
   }
+  /* approximate the CSS default of --accent-2 (accent mixed 55% with #0b1220) for the color input */
+  function mixHex(a, b, k) {
+    const p = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+    if (!/^#[0-9a-f]{6}$/i.test(a) || !/^#[0-9a-f]{6}$/i.test(b)) return '#334155';
+    const A = p(a), B = p(b);
+    return '#' + A.map((v, i) => Math.round(v * k + B[i] * (1 - k)).toString(16).padStart(2, '0')).join('');
+  }
+  /* style overrides: design.overrides is replaced, never mutated (older saved states share DEFAULT_DESIGN.overrides) */
+  const ovObj = (d) => (d.overrides && typeof d.overrides === 'object' && !Array.isArray(d.overrides) ? d.overrides : {});
+  function setOverride(d, key, value) {
+    const o = { ...ovObj(d) };
+    if (value) o[key] = value; else delete o[key];
+    d.overrides = o;
+    App.changed('design');
+  }
+  function knobSelect(d, eff, key) {
+    const knob = TEMPLATE_KNOBS[key];
+    const cur = knobValid(key, ovObj(d)[key]) ? ovObj(d)[key] : '';
+    return h('label', { class: `knob-row${cur ? ' set' : ''}` }, h('span', { class: 'fld-label' }, knob.label),
+      h('select', { class: 'inp', 'data-knob': key, onchange: (e) => { setOverride(d, key, e.target.value); e.target.parentNode.classList.toggle('set', !!e.target.value); } },
+        h('option', { value: '', selected: !cur }, `Template default (${knobLabel(key, eff.tv[key])})`),
+        knob.values.map(([v, l]) => h('option', { value: v, selected: cur === v }, l))));
+  }
 
   function build() {
     const d = App.state.design;
@@ -291,12 +314,26 @@ const Design = (() => {
       ACCENTS.map((c) => h('button', { type: 'button', class: `sw${eff.accent.toLowerCase() === c ? ' active' : ''}`, style: { background: c }, title: c, onclick: () => { d.accent = c; App.changed('design'); build(); } })),
       h('label', { class: 'sw custom', title: 'Custom color', html: icon('palette') },
         h('input', { type: 'color', value: eff.accent, oninput: (e) => { d.accent = e.target.value; App.changed('design'); }, onchange: () => build() })));
+    const acc2 = eff.accent2 || mixHex(eff.accent, '#0b1220', 0.55);
+    const secondary = h('div', { class: 'acc2-row' },
+      h('label', { class: 'sw acc2-sw', title: 'Secondary color', style: { background: acc2 } },
+        h('input', { type: 'color', value: acc2, oninput: (e) => { d.accent2 = e.target.value; e.target.parentNode.style.background = e.target.value; App.changed('design'); }, onchange: () => build() })),
+      h('span', { class: 'muted-txt' }, d.accent2 ? 'Custom secondary color' : (eff.t.accent2 ? 'Template secondary color' : 'Auto (darker accent)'),
+        h('small', {}, ' · used by gradients and some decorations')));
+    const hasOv = OVERRIDE_KEYS.some((k) => knobValid(k, ovObj(d)[k]));
+    const styleKeys = OVERRIDE_KEYS.filter((k) => !(TEMPLATE_KNOBS[k].twoColOnly && !eff.twoCol));
     root.append(
       h('div', { class: 'card open static' }, h('div', { class: 'card-body' },
         h('div', { class: 'cur-tpl' }, h('div', {}, h('small', {}, 'Current template'), h('b', {}, eff.t.name)),
           h('button', { class: 'btn sm', type: 'button', onclick: () => App.setTab('templates') }, 'Change')),
         h('div', { class: 'sub-label' }, 'Accent color', d.accent && h('button', { class: 'link', type: 'button', onclick: () => { d.accent = null; App.changed('design'); build(); } }, 'Reset')),
         swatches,
+        h('div', { class: 'sub-label' }, 'Secondary color', d.accent2 && h('button', { class: 'link', type: 'button', onclick: () => { d.accent2 = null; App.changed('design'); build(); } }, 'Reset')),
+        secondary,
+        h('div', { class: 'sub-label' }, 'Style', hasOv
+          ? h('button', { class: 'link', type: 'button', onclick: () => { d.overrides = {}; App.changed('design'); build(); } }, 'Reset style')
+          : h('small', {}, 'override the template look')),
+        h('div', { class: 'style-grid' }, styleKeys.map((k) => knobSelect(d, eff, k))),
         h('div', { class: 'sub-label' }, 'Typography'),
         fld('Headings font', fontSelect(d.fontHead, eff.t.fontHead, (v) => { d.fontHead = v; })),
         fld('Body font', fontSelect(d.fontBody, eff.t.fontBody, (v) => { d.fontBody = v; })),
@@ -312,8 +349,9 @@ const Design = (() => {
         h('label', { class: 'switch-row' },
           h('input', { type: 'checkbox', checked: d.showPhoto, onchange: (e) => { d.showPhoto = e.target.checked; App.changed('design'); } }),
           h('span', { class: 'switch' }), 'Show photo / initials'),
+        eff.v.photo === 'none-default' && d.showPhoto && h('p', { class: 'hint' }, 'This template hides the photo (ATS-friendly). Pick a Photo shape above to show it.'),
         h('button', { class: 'btn sm ghost block', type: 'button', onclick: () => {
-          Object.assign(d, { ...DEFAULT_DESIGN, template: d.template, showPhoto: d.showPhoto }); App.changed('design'); build();
+          Object.assign(d, { ...DEFAULT_DESIGN, template: d.template, showPhoto: d.showPhoto, overrides: {} }); App.changed('design'); build();
         } }, 'Reset design to template defaults'),
       )),
     );
@@ -321,46 +359,288 @@ const Design = (() => {
   return { build };
 })();
 
-/* ---------- Template gallery with live thumbnails ---------- */
+/* ---------- Template gallery: search, categories, filters, lazy live thumbnails, full-screen browser ---------- */
 const Gallery = (() => {
-  let dirty = true;
-  let timer = null;
+  const filters = { q: '', cat: 'all', photo: '', cols: '', ats: false };
+  const views = [];          // one per grid (side panel, full-screen modal)
+  let version = 1;           // thumbnails rendered with an older version are stale
+  let sig = '';              // signature of what thumbnails depend on
+  let queue = [];
+  let pumping = false;
+  let dirtyTimer = null;
+  let modal = null;
+
+  const catName = (id) => (TEMPLATE_CATEGORIES.find((c) => c.id === id) || { name: id }).name;
+  const isAts = (t) => t.category === 'ats' || (t.tags || []).includes('ats');
+  const hasPhoto = (t) => (t.tags || []).includes('photo');
+  const haystack = (t) => `${t.name} ${t.id} ${t.desc} ${t.category} ${catName(t.category)} ${(t.tags || []).join(' ')}`.toLowerCase();
+  function matches(t, ignoreCat) {
+    if (!ignoreCat && filters.cat !== 'all' && t.category !== filters.cat) return false;
+    if (filters.photo === 'yes' && !hasPhoto(t)) return false;
+    if (filters.photo === 'no' && hasPhoto(t)) return false;
+    if (filters.cols === '1' && t.layout !== 'single') return false;
+    if (filters.cols === '2' && t.layout === 'single') return false;
+    if (filters.ats && !isAts(t)) return false;
+    const words = filters.q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (words.length) { const s = haystack(t); if (!words.every((w) => s.includes(w))) return false; }
+    return true;
+  }
+  const anyFilter = () => filters.q || filters.cat !== 'all' || filters.photo || filters.cols || filters.ats;
+  /* thumbnails show each template's own defaults with the user's content and spacing */
+  const thumbDesign = (id) => ({ ...App.state.design, template: id, accent: null, accent2: null, fontHead: null, fontBody: null, sideWidth: null, skillStyle: 'auto', overrides: {} });
+  function thumbSig() {
+    const d = App.state.design;
+    return JSON.stringify([App.state.data, d.fontScale, d.lineHeight, d.margin, d.gap, d.showPhoto]);
+  }
+
+  /* ----- lazy rendering ----- */
+  /* true when the template's fonts are loaded (otherwise the thumbnail is re-rendered once they are) */
+  function fontsReady(t) {
+    if (!document.fonts || !document.fonts.check) return true;
+    try { return [t.fontHead, t.fontBody].every((f) => !f || ['400', '700'].every((w) => document.fonts.check(`${w} 12px ${fontStack(f)}`))); } catch { return true; }
+  }
+  function renderThumb(c) {
+    const t = tplById(c.dataset.tpl);
+    try { Render.render(c._thumb, App.state.data, thumbDesign(t.id), { maxPages: 1 }); } catch (e) { console.error(e); }
+    c._ver = version;
+    c._fontsOk = fontsReady(t);
+  }
+  function enqueue(c) {
+    if (c._ver === version || queue.includes(c)) return;
+    queue.push(c);
+    if (!pumping) { pumping = true; requestAnimationFrame(pump); }
+  }
+  /* render cards that are actually on screen first, then the ones in the 300px look-ahead margin */
+  function onScreen(c) {
+    const r = c.getBoundingClientRect();
+    return r.bottom > 0 && r.top < innerHeight && r.width > 0;
+  }
+  function pump() {
+    const t0 = performance.now();
+    // while the full-screen browser is open, the side panel behind it waits
+    queue = queue.filter((c) => c._vis && c._ver !== version && c.isConnected && (!modal || modal.view.cards.get(c.dataset.tpl) === c));
+    const first = queue.filter(onScreen);
+    queue = first.concat(queue.filter((c) => !first.includes(c)));
+    while (queue.length && performance.now() - t0 < 12) renderThumb(queue.shift());
+    if (queue.length) requestAnimationFrame(pump); else pumping = false;
+  }
+  const enqueueVisible = () => views.forEach((v) => v.cards.forEach((c) => { if (c._vis) enqueue(c); }));
+
+  /* ----- building blocks ----- */
+  function card(t, view) {
+    const thumb = h('div', { class: 'tpl-thumb pages' });
+    const badges = [hasPhoto(t) && 'Photo', isAts(t) && 'ATS', t.layout !== 'single' && '2 col'].filter(Boolean);
+    const c = h('button', {
+      type: 'button', class: `tpl-card${App.state.design.template === t.id ? ' active' : ''}`, 'data-tpl': t.id,
+      title: `${t.name} — ${t.desc}`, 'aria-label': `${t.name} template, ${catName(t.category)}: ${t.desc}`,
+      onclick: () => { select(t.id); if (view.modal) closeModal(); },
+    },
+    thumb,
+    h('div', { class: 'tpl-meta' }, h('b', {}, t.name), h('small', {}, t.desc),
+      badges.length ? h('span', { class: 'tpl-badges' }, badges.map((b) => h('i', {}, b))) : null),
+    h('span', { class: 'tpl-check', html: '✓' }));
+    c._thumb = thumb;
+    c._ver = 0;
+    c._vis = false;
+    return c;
+  }
+
+  function chip(label, count, active, onclick, cls = '') {
+    return h('button', { type: 'button', class: `tg-chip ${cls}${active ? ' on' : ''}`, 'aria-pressed': String(!!active), onclick },
+      label, count != null && h('span', { class: 'n' }, String(count)));
+  }
+
+  function toolbar(view) {
+    const search = h('input', {
+      class: 'inp tg-search', type: 'search', placeholder: `Search ${TEMPLATES.length} templates…`, value: filters.q, 'aria-label': 'Search templates',
+      oninput: (e) => { filters.q = e.target.value; clearTimeout(view._qt); view._qt = setTimeout(() => refilter(view), 120); },
+    });
+    const top = h('div', { class: 'tg-top' },
+      h('div', { class: 'tg-row' },
+        h('div', { class: 'tg-search-wrap', html: icon('search', 'ico tg-search-ico') }, search),
+        view.modal
+          ? h('button', { type: 'button', class: 'icon-btn tg-close', title: 'Close (Esc)', 'aria-label': 'Close', onclick: closeModal, html: icon('close') })
+          : h('button', { type: 'button', class: 'icon-btn tg-expand', title: 'Browse all templates full screen', 'aria-label': 'Expand gallery', onclick: openModal, html: icon('expand') })));
+    const bar = h('div', { class: 'tg-bar' },
+      h('div', { class: 'tg-chips', role: 'group', 'aria-label': 'Categories' }),
+      h('div', { class: 'tg-toggles', role: 'group', 'aria-label': 'Filters' }),
+      h('div', { class: 'tg-status' }, h('span', { class: 'tg-count', 'aria-live': 'polite' }),
+        h('button', { type: 'button', class: 'link tg-clear', onclick: () => { Object.assign(filters, { q: '', cat: 'all', photo: '', cols: '', ats: false }); syncAll(); } }, 'Clear filters'),
+        h('button', { type: 'button', class: 'btn xs ghost tg-dice', title: 'Apply a random template (from the current filters)', onclick: () => surprise(view), html: `${icon('dice')}<span>Surprise me</span>` })));
+    view.search = search;
+    view.bar = bar;
+    view.top = top;
+    return [top, bar];
+  }
+
+  function syncBar(view) {
+    const chips = $('.tg-chips', view.bar);
+    const base = TEMPLATES.filter((t) => matches(t, true));
+    chips.replaceChildren(
+      chip('All', base.length, filters.cat === 'all', () => { filters.cat = 'all'; syncAll(); }),
+      ...TEMPLATE_CATEGORIES.map((c) => {
+        const n = base.filter((t) => t.category === c.id).length;
+        const total = TEMPLATES.filter((t) => t.category === c.id).length;
+        return total ? chip(c.name, n, filters.cat === c.id, () => { filters.cat = filters.cat === c.id ? 'all' : c.id; syncAll(); }, n ? '' : 'empty') : null;
+      }));
+    const tog = (label, on, fn) => chip(label, null, on, () => { fn(); syncAll(); }, 'tg-tog');
+    $('.tg-toggles', view.bar).replaceChildren(
+      tog('Photo', filters.photo === 'yes', () => { filters.photo = filters.photo === 'yes' ? '' : 'yes'; }),
+      tog('No photo', filters.photo === 'no', () => { filters.photo = filters.photo === 'no' ? '' : 'no'; }),
+      tog('One column', filters.cols === '1', () => { filters.cols = filters.cols === '1' ? '' : '1'; }),
+      tog('Two columns', filters.cols === '2', () => { filters.cols = filters.cols === '2' ? '' : '2'; }),
+      tog('ATS-friendly', filters.ats, () => { filters.ats = !filters.ats; }));
+    if (view.search.value !== filters.q) view.search.value = filters.q;
+    const n = TEMPLATES.filter((t) => matches(t)).length;
+    $('.tg-count', view.bar).textContent = anyFilter() ? `${n} of ${TEMPLATES.length} templates` : `${TEMPLATES.length} templates`;
+    $('.tg-clear', view.bar).hidden = !anyFilter();
+  }
+
+  /* lay out the cards of `view` for the current filters, grouped under category headings */
+  function layout(view) {
+    const list = TEMPLATES.filter((t) => matches(t));
+    const kids = [];
+    TEMPLATE_CATEGORIES.forEach((c) => {
+      const items = list.filter((t) => t.category === c.id);
+      if (!items.length) return;
+      kids.push(h('div', { class: 'tg-head' }, h('b', {}, c.name), h('small', {}, c.desc), h('span', { class: 'n' }, String(items.length))));
+      items.forEach((t) => {
+        if (!view.cards.has(t.id)) { const c = card(t, view); view.cards.set(t.id, c); view.io.observe(c); } // registered after build()
+        kids.push(view.cards.get(t.id));
+      });
+    });
+    if (!list.length) kids.push(h('div', { class: 'tg-empty' }, h('b', {}, 'No templates match'), h('span', {}, 'Try another search or clear the filters.')));
+    view.grid.replaceChildren(...kids);
+  }
+
+  function refilter(view) { (view ? [view] : views).forEach((v) => { syncBar(v); layout(v); }); }
+  function syncAll() { views.forEach((v) => { syncBar(v); layout(v); }); }
+
+  function makeView(grid, scrollRoot, isModal) {
+    const view = { grid, modal: isModal, cards: new Map() };
+    view.io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        const c = en.target;
+        c._vis = en.isIntersecting;
+        if (c._vis) enqueue(c);
+      });
+    }, { root: scrollRoot, rootMargin: '300px 0px' });
+    TEMPLATES.forEach((t) => {
+      const c = card(t, view);
+      view.cards.set(t.id, c);
+      view.io.observe(c);
+    });
+    return view;
+  }
+  function dropView(view) {
+    view.io.disconnect();
+    const i = views.indexOf(view);
+    if (i >= 0) views.splice(i, 1);
+  }
+
+  /* ----- public: side panel gallery ----- */
   function build() {
     const grid = $('#tplGrid');
-    grid.innerHTML = '';
-    TEMPLATES.forEach((t) => {
-      const thumb = h('div', { class: 'tpl-thumb pages' });
-      const c = h('button', { type: 'button', class: `tpl-card${App.state.design.template === t.id ? ' active' : ''}`, 'data-tpl': t.id, onclick: () => select(t.id) },
-        thumb,
-        h('div', { class: 'tpl-meta' }, h('b', {}, t.name), h('small', {}, t.desc)),
-        h('span', { class: 'tpl-check', html: '✓' }));
-      grid.appendChild(c);
-    });
-    dirty = true;
-    refresh();
+    if (!grid) return;
+    const old = views.find((v) => !v.modal);
+    if (old) dropView(old);
+    $$('.tg-top, .tg-bar', grid.parentNode).forEach((n) => n.remove());
+    const view = makeView(grid, grid.closest('.panel-scroll'), false);
+    toolbar(view).forEach((n) => grid.parentNode.insertBefore(n, grid));
+    views.push(view);
+    syncBar(view);
+    layout(view);
+    sig = thumbSig();
+    version++;
+    if (modal) { modal.view.cards.forEach((c) => c.classList.toggle('active', c.dataset.tpl === App.state.design.template)); }
   }
+
   function select(id) {
     const d = App.state.design;
-    d.template = id; d.accent = null; d.fontHead = null; d.fontBody = null; d.sideWidth = null; d.skillStyle = 'auto';
-    $$('.tpl-card').forEach((c) => c.classList.toggle('active', c.dataset.tpl === id));
+    d.template = id; d.accent = null; d.accent2 = null; d.fontHead = null; d.fontBody = null; d.sideWidth = null; d.skillStyle = 'auto'; d.overrides = {};
+    views.forEach((v) => v.cards.forEach((c) => c.classList.toggle('active', c.dataset.tpl === id)));
     App.changed('design');
     Design.build();
     Editor.build();
     toast(`Template "${tplById(id).name}" applied`);
   }
-  function refresh(force) {
-    if (force) dirty = true;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      const grid = $('#tplGrid');
-      if (!dirty || !grid || !grid.offsetParent) return;
-      dirty = false;
-      $$('.tpl-card', grid).forEach((c) => {
-        const d = { ...App.state.design, template: c.dataset.tpl, accent: null, fontHead: null, fontBody: null, sideWidth: null, skillStyle: 'auto' };
-        Render.render($('.tpl-thumb', c), App.state.data, d, { maxPages: 1 });
-      });
-    }, 250);
+
+  function surprise(view) {
+    const cur = App.state.design.template;
+    let list = TEMPLATES.filter((t) => matches(t) && t.id !== cur);
+    if (!list.length) list = TEMPLATES.filter((t) => t.id !== cur);
+    if (!list.length) return;
+    const t = list[Math.floor(Math.random() * list.length)];
+    select(t.id);
+    const c = view.cards.get(t.id);
+    if (c && c.isConnected) c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-  const markDirty = () => { dirty = true; refresh(); };
-  return { build, refresh, markDirty };
+
+  /** Re-render stale visible thumbnails. Content/spacing changes make every thumbnail stale; `force` (fonts finished
+      loading, tab shown) also refreshes thumbnails that were drawn before their fonts were available. */
+  let forced = false;
+  function refresh(force) {
+    forced = forced || !!force;
+    clearTimeout(dirtyTimer);
+    dirtyTimer = setTimeout(() => {
+      const s = thumbSig();
+      if (s !== sig) { sig = s; version++; }
+      if (forced) views.forEach((v) => v.cards.forEach((card) => { if (card._ver === version && !card._fontsOk && fontsReady(tplById(card.dataset.tpl))) card._ver = 0; }));
+      forced = false;
+      enqueueVisible();
+    }, 220);
+  }
+  const markDirty = () => refresh(false);
+
+  /* ----- full-screen browser ----- */
+  function onKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeModal(); }
+    else if (e.key === 'Tab' && modal) {
+      // keep focus inside the dialog
+      const f = $$('button, input, [tabindex]:not([tabindex="-1"])', modal.el).filter((n) => !n.disabled && n.offsetParent);
+      if (!f.length) return;
+      if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+    }
+  }
+  function sizeModal() {
+    if (!modal) return;
+    const first = $('.tpl-thumb', modal.view.grid);
+    const w = first ? first.clientWidth : 0;
+    if (w > 0) modal.view.grid.style.setProperty('--tg-zoom', (w / PAGE_W).toFixed(4));
+  }
+  function openModal() {
+    if (modal) return;
+    const grid = h('div', { class: 'tpl-grid tg-modal-grid' });
+    const scroller = h('div', { class: 'tg-modal-body' }, grid);
+    const dialog = h('div', { class: 'tg-dialog glass', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'All templates' });
+    const el = h('div', { class: 'tg-modal', onclick: (e) => { if (e.target === el) closeModal(); } }, dialog);
+    const view = makeView(grid, scroller, true);
+    const head = h('div', { class: 'tg-modal-head' }, h('div', { class: 'tg-title' }, h('b', {}, 'Template gallery'), h('small', {}, 'Your content, every design. Click a template to apply it.')), toolbar(view));
+    dialog.append(head, scroller);
+    document.body.appendChild(el);
+    views.push(view);
+    modal = { el, view, ret: document.activeElement, ro: new ResizeObserver(sizeModal) };
+    syncBar(view);
+    layout(view);
+    modal.ro.observe(grid);
+    document.addEventListener('keydown', onKey, true);
+    document.body.classList.add('tg-open');
+    requestAnimationFrame(() => { sizeModal(); el.classList.add('show'); view.search.focus(); const a = view.cards.get(App.state.design.template); if (a && a.isConnected) a.scrollIntoView({ block: 'center' }); });
+  }
+  function closeModal() {
+    if (!modal) return;
+    const m = modal;
+    modal = null;
+    document.removeEventListener('keydown', onKey, true);
+    m.ro.disconnect();
+    dropView(m.view);
+    m.el.remove();
+    document.body.classList.remove('tg-open');
+    syncAll();
+    enqueueVisible();
+    if (m.ret && m.ret.isConnected) m.ret.focus();
+  }
+
+  return { build, refresh, markDirty, select, openModal, closeModal, filters };
 })();
