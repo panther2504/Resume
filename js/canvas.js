@@ -55,6 +55,8 @@ const Snap = (() => {
     'padding-top': '0px', 'padding-right': '0px', 'padding-bottom': '0px', 'padding-left': '0px',
     'margin-top': '0px', 'margin-right': '0px', 'margin-bottom': '0px', 'margin-left': '0px',
     'text-decoration-line': 'none', opacity: '1', position: 'static', 'vertical-align': 'baseline', 'box-shadow': 'none', 'object-fit': 'fill', order: '0',
+    'grid-template-columns': 'none', 'grid-template-rows': 'none', 'grid-column-start': 'auto', 'grid-column-end': 'auto',
+    'grid-row-start': 'auto', 'grid-row-end': 'auto', 'align-self': 'auto', 'justify-self': 'auto',
   };
   const POS = ['top', 'left', 'right', 'bottom'];
   const SIDES = ['top', 'right', 'bottom', 'left'];

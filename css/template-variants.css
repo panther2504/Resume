@@ -1,0 +1,309 @@
+/* Resume Studio — generic template variants (knobs). Every page gets one class per knob:
+   hv-<header> ts-<title> ev-<entry> sv-<side> cv-<contacts> ph-<photo> dn-<density> bl-<bullets>
+   pd-<decor> nc-<nameCase> cs-<chips> rs-<role>, plus hd-top|hd-side, layout-<single|left|right>,
+   side-dark (two-column page whose sidebar style is a dark surface) and cont (continuation pages).
+   Values and descriptions: TEMPLATE_KNOBS in js/data.js.
+
+   Rules here are written as `.rpage.<variant> …` (one class more than the base rules in templates.css).
+   Template CSS in css/templates/<category>.css loads after this file: to tweak something a knob controls,
+   qualify with the knob class (`.tpl-x.hv-band .name { … }`) so the tweak disappears when the user picks
+   another value. Prefer setting variables (`.tpl-x { --side-tint: … }`) — see js/data.js for the list.
+
+   Never use ::before/::after for visible content (canvas conversion and PDF export cannot capture it). */
+
+/* =====================================================================================================
+   DARK SURFACES — redefine the color variables so every element (titles, bars, dots, chips, contacts,
+   photo, cards…) is light-on-dark automatically.
+   ===================================================================================================== */
+.rpage.sv-dark .col-side,
+.rpage.sv-dark-accent-titles .col-side,
+.rpage.sv-accent .col-side,
+.rpage.sv-gradient .col-side {
+  color: rgba(255, 255, 255, .88);
+  --c-ink: #fff;
+  --c-name: #fff;
+  --c-text: rgba(255, 255, 255, .78);
+  --c-sub: rgba(255, 255, 255, .78);
+  --c-date: rgba(255, 255, 255, .78);
+  --c-acc: var(--side-fill);
+  --c-role: var(--side-fill);
+  --c-title: var(--side-title, #fff);
+  --c-line: var(--side-fill);
+  --c-line-soft: rgba(255, 255, 255, .22);
+  --c-on-acc: var(--side-on-fill, #0f172a);
+  --c-track: rgba(255, 255, 255, .18);
+  --c-dot-off: rgba(255, 255, 255, .2);
+  --c-chip-bg: rgba(255, 255, 255, .12);
+  --c-chip-fg: #fff;
+  --c-chip-line: rgba(255, 255, 255, .4);
+  --c-rule: rgba(255, 255, 255, .18);
+  --c-card: rgba(255, 255, 255, .07);
+  --c-mark: rgba(255, 255, 255, .22);
+  --c-tint: rgba(255, 255, 255, .08);
+  --c-photo-bg: rgba(255, 255, 255, .1);
+  --c-photo-fg: #fff;
+  --c-photo-line: rgba(255, 255, 255, .28);
+  --c-tl: rgba(255, 255, 255, .25);
+  --c-tl-dot: transparent;
+}
+/* colored (not near-black) sidebars: stronger text so light accents keep readable contrast */
+.rpage.sv-accent .col-side, .rpage.sv-gradient .col-side {
+  color: #fff;
+  --c-text: rgba(255, 255, 255, .92);
+  --c-sub: rgba(255, 255, 255, .9);
+  --c-date: rgba(255, 255, 255, .88);
+}
+/* header bands (top header) and the same treatments on a side header */
+.rpage.hv-band .pg-header, .rpage.hv-band-centered .pg-header, .rpage.hv-band-dark .pg-header, .rpage.hv-gradient .pg-header,
+.rpage.hv-band .hdr-side, .rpage.hv-band-centered .hdr-side, .rpage.hv-band-dark .hdr-side, .rpage.hv-gradient .hdr-side {
+  color: rgba(255, 255, 255, .9);
+  --c-ink: #fff;
+  --c-text: rgba(255, 255, 255, .85);
+  --c-sub: rgba(255, 255, 255, .92);
+  --c-date: rgba(255, 255, 255, .75);
+  --c-name: var(--head-name, #fff);
+  --c-role: var(--head-role, rgba(255, 255, 255, .85));
+  --c-acc: var(--head-fill, #fff);
+  --c-on-acc: var(--accent);
+  --c-line: var(--head-fill, #fff);
+  --c-line-soft: rgba(255, 255, 255, .3);
+  --c-chip-bg: rgba(255, 255, 255, .16);
+  --c-chip-fg: #fff;
+  --c-chip-line: rgba(255, 255, 255, .45);
+  --c-rule: rgba(255, 255, 255, .3);
+  --c-tint: rgba(255, 255, 255, .12);
+  --c-photo-bg: rgba(255, 255, 255, .15);
+  --c-photo-fg: #fff;
+  --c-photo-line: rgba(255, 255, 255, .4);
+}
+.rpage.hv-band-dark .pg-header, .rpage.hv-band-dark .hdr-side {
+  --c-role: var(--head-role, color-mix(in srgb, var(--accent) 62%, #fff));
+  --c-acc: var(--head-fill, color-mix(in srgb, var(--accent) 62%, #fff));
+  --c-line: var(--head-fill, color-mix(in srgb, var(--accent) 62%, #fff));
+  --c-on-acc: #0f172a;
+  --c-sub: rgba(255, 255, 255, .82);
+  --c-photo-fg: var(--head-fill, color-mix(in srgb, var(--accent) 62%, #fff));
+}
+
+/* =====================================================================================================
+   HEADER (hv-) — top placement (.pg-header > .hdr-top)
+   ===================================================================================================== */
+/* centered */
+/* (nowrap + flex-basis:auto: the PDF exporter inlines computed heights, and a wrapping column flexbox with a definite
+   height would push the contacts into a second column) */
+.rpage.hv-centered .hdr-top, .rpage.hv-band-centered .hdr-top { flex-direction: column; flex-wrap: nowrap; text-align: center; gap: 2.5mm; }
+.rpage.hv-centered .hdr-top .contacts, .rpage.hv-band-centered .hdr-top .contacts { flex-basis: auto; justify-content: center; }
+/* bands */
+.rpage.hv-band .pg-header, .rpage.hv-band-centered .pg-header { background: var(--head-bg, var(--accent)); }
+.rpage.hv-band-dark .pg-header { background: var(--head-dark, color-mix(in srgb, var(--accent) 14%, #0f172a)); }
+.rpage.hv-gradient .pg-header { background-color: var(--accent); background-image: linear-gradient(118deg, var(--accent) 0%, var(--accent-2) 100%); }
+.rpage.hv-band .hdr-top, .rpage.hv-band-centered .hdr-top, .rpage.hv-band-dark .hdr-top, .rpage.hv-gradient .hdr-top { padding: calc(var(--pad) * 1.05) var(--pad); }
+.rpage.hv-band .pg-header + .pg-cols > .col, .rpage.hv-band-centered .pg-header + .pg-cols > .col,
+.rpage.hv-band-dark .pg-header + .pg-cols > .col, .rpage.hv-gradient .pg-header + .pg-cols > .col,
+.rpage.hv-tinted .pg-header + .pg-cols > .col { padding-top: calc(var(--pad) * .85); }
+/* tinted */
+.rpage.hv-tinted .pg-header { background: var(--head-tint, var(--c-tint)); border-bottom: 1px solid var(--c-line-soft); }
+.rpage.hv-tinted .hdr-top { padding-top: calc(var(--pad) * .95); padding-bottom: calc(var(--pad) * .75); }
+/* split: name left, contacts stacked in a right column */
+.rpage.hv-split .hdr-top { flex-wrap: nowrap; align-items: center; }
+.rpage.hv-split .hdr-top .contacts { flex: 0 0 auto; width: 38%; max-width: 76mm; flex-direction: column; flex-wrap: nowrap; justify-content: center; gap: .32em; align-self: stretch; padding-left: 5mm; border-left: 2px solid var(--c-line); }
+.rpage.hv-split .hdr-top .ci-sep { display: none; }
+/* boxed */
+.rpage.hv-boxed .pg-header { padding: var(--pad) var(--pad) 0; }
+.rpage.hv-boxed .hdr-top { padding: 5mm 6mm; border: 1.5px solid var(--c-line); border-radius: 3px; }
+.rpage.hv-boxed .pg-header + .pg-cols > .col { padding-top: calc(var(--pad) * .75); }
+/* underline */
+.rpage.hv-underline .hdr-top { margin: 0 var(--pad); padding: var(--pad) 0 4mm; border-bottom: 3px solid var(--c-line); }
+.rpage.hv-underline .pg-header + .pg-cols > .col { padding-top: calc(var(--pad) * .75); }
+/* leftbar */
+.rpage.hv-leftbar .hdr-top .hdr-text { border-left: 6px solid var(--c-line); padding: .6mm 0 .6mm 4.5mm; }
+/* photo on the right: grid [text | photo] / [contacts | photo] */
+.rpage.hv-photo-right .hdr-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 0; row-gap: 3.2mm; align-items: center; }
+.rpage.hv-photo-right .hdr-top .photo { grid-column: 2; grid-row: 1 / span 2; margin-left: 8mm; }
+.rpage.hv-photo-right .hdr-top .hdr-text { grid-column: 1; grid-row: 1; align-self: end; }
+.rpage.hv-photo-right .hdr-top .contacts { grid-column: 1; grid-row: 2; align-self: start; }
+/* compact */
+.rpage.hv-compact .hdr-top { padding: calc(var(--pad) * .8) var(--pad) calc(var(--pad) * .35); gap: 2mm 5mm; }
+.rpage.hv-compact .hdr-top .hdr-text { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 4mm; }
+.rpage.hv-compact .name { font-size: calc(var(--fs) * 1.95 * var(--name-scale, 1)); }
+.rpage.hv-compact .hdr-top .role { margin-top: 0; }
+.rpage.hv-compact .photo { width: 17mm; height: 17mm; }
+.rpage.hv-compact .photo-ini span { font-size: calc(var(--fs) * 1.3); }
+.rpage.hv-compact .contacts { font-size: calc(var(--fs) * .88); }
+
+/* ---------- HEADER (hv-) — side placement (.col-side > .hdr-side) ---------- */
+.rpage.hv-plain-left .hdr-side, .rpage.hv-split .hdr-side, .rpage.hv-leftbar .hdr-side, .rpage.hv-band .hdr-side,
+.rpage.hv-band-dark .hdr-side, .rpage.hv-gradient .hdr-side, .rpage.hv-tinted .hdr-side { align-items: flex-start; text-align: left; }
+.rpage.hv-leftbar .hdr-side .hdr-text { border-left: 5px solid var(--c-line); padding-left: 3.5mm; }
+/* surfaces bleed to the column edges */
+.rpage.hv-band .hdr-side, .rpage.hv-band-centered .hdr-side, .rpage.hv-band-dark .hdr-side, .rpage.hv-gradient .hdr-side, .rpage.hv-tinted .hdr-side {
+  margin: calc(-1 * var(--col-pt, var(--pad))) calc(-1 * var(--pad)) 0;
+  padding: calc(var(--col-pt, var(--pad)) + 1mm) var(--pad) 6mm;
+}
+.rpage.hv-band .hdr-side, .rpage.hv-band-centered .hdr-side { background: var(--head-bg, var(--accent)); }
+.rpage.hv-band-dark .hdr-side { background: var(--head-dark, color-mix(in srgb, var(--accent) 14%, #0f172a)); }
+.rpage.hv-gradient .hdr-side { background-color: var(--accent); background-image: linear-gradient(160deg, var(--accent) 0%, var(--accent-2) 100%); }
+.rpage.hv-tinted .hdr-side { background: var(--head-tint, var(--c-tint)); border-bottom: 1px solid var(--c-line-soft); }
+.rpage.hv-boxed .hdr-side { border: 1.5px solid var(--c-line); border-radius: 3px; padding: 5mm 4mm; }
+.rpage.hv-underline .hdr-side { border-bottom: 3px solid var(--c-line); padding-bottom: 5mm; }
+.rpage.hv-compact .hdr-side { gap: 2.5mm; }
+.rpage.hv-compact .hdr-side .name { font-size: calc(var(--fs) * 1.6 * var(--name-scale, 1)); }
+
+/* =====================================================================================================
+   SECTION TITLES (ts-)
+   ===================================================================================================== */
+.rpage.ts-caps-accent .sec-line { display: none; }
+.rpage.ts-underline-full .sec-line { width: 100%; }
+.rpage.ts-line-after .sec-title { display: flex; align-items: center; gap: 10px; }
+.rpage.ts-line-after .sec-title h2 { flex: 0 1 auto; min-width: 0; }
+.rpage.ts-line-after .sec-line { flex: 1; width: auto; min-width: 12px; height: 1px; margin: 0; background: var(--c-line-soft); }
+.rpage.ts-ruled-both .sec-title { display: flex; align-items: center; gap: 3mm; text-align: center; }
+.rpage.ts-ruled-both .sec-title h2 { flex: 0 1 auto; min-width: 0; }
+.rpage.ts-ruled-both .sec-rule-l { display: block; }
+.rpage.ts-ruled-both .sec-rule-l, .rpage.ts-ruled-both .sec-line { flex: 1 1 0; min-width: 6px; width: auto; height: 1px; margin: 0; border-radius: 0; background: var(--c-line); }
+.rpage.ts-centered .sec-title { text-align: center; }
+.rpage.ts-centered .sec-line { margin: 5px auto 0; width: 32px; }
+.rpage.ts-bar-left .sec-title { border-left: 4px solid var(--c-line); padding: .05em 0 .05em 3mm; }
+.rpage.ts-bar-left .sec-line { display: none; }
+.rpage.ts-pill .sec-title h2 { display: inline-block; padding: .32em 1em .27em; border-radius: 999px; background: var(--c-acc); color: var(--c-on-acc); font-size: calc(var(--fs) * .95 * var(--title-scale, 1)); line-height: 1.2; }
+.rpage.ts-pill .sec-line { display: none; }
+.rpage.ts-boxed .sec-title { padding: 1.3mm 3mm; background: var(--c-card); border: 1px solid var(--c-line-soft); border-left: 3px solid var(--c-line); border-radius: 2px; }
+.rpage.ts-boxed .sec-line { display: none; }
+.rpage.ts-highlight .sec-title h2 { display: inline; padding: 0 .2em; color: var(--c-ink); background-image: linear-gradient(transparent 50%, var(--c-mark) 50%, var(--c-mark) 92%, transparent 92%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.rpage.ts-highlight .sec-line { display: none; }
+.rpage.ts-dotted .sec-line { width: 100%; height: 0; margin-top: 4px; border-radius: 0; background: none; border-top: 2px dotted var(--c-line); }
+.rpage.ts-plain-bold .sec-title h2 { text-transform: none; letter-spacing: 0; color: var(--c-ink); font-size: calc(var(--fs) * 1.24 * var(--title-scale, 1)); }
+.rpage.ts-plain-bold .sec-line { display: none; }
+.rpage.ts-numbered .sec-title { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: .55em; }
+.rpage.ts-numbered .sec-num { display: block; font-family: var(--font-head); font-weight: 800; font-size: calc(var(--fs) * 1.3 * var(--title-scale, 1)); line-height: 1; letter-spacing: 0; color: var(--c-acc); }
+.rpage.ts-numbered .sec-title h2 { color: var(--c-ink); }
+.rpage.ts-numbered .sec-line { flex-basis: 100%; width: 100%; height: 1px; margin-top: 4px; border-radius: 0; background: var(--c-line-soft); }
+.rpage.ts-overline .sec-title { border-top: 3px solid var(--c-line); padding-top: 2.2mm; }
+.rpage.ts-overline .sec-line { display: none; }
+
+/* =====================================================================================================
+   ENTRIES (ev-)
+   ===================================================================================================== */
+:where(.rpage) { --c-tl: color-mix(in srgb, var(--accent) 25%, #fff); --c-tl-dot: #fff; --date-w: 25mm; }
+/* timeline (main column) */
+.rpage.ev-timeline .col-main .entry { padding-left: 18px; border-left: 2px solid var(--c-tl); }
+.rpage.ev-timeline .col-main .tl-dot { display: block; position: absolute; left: -7px; top: .3em; width: 12px; height: 12px; border-radius: 50%; background: var(--c-tl-dot); border: 3px solid var(--c-acc); }
+.rpage.ev-timeline .col-main .blk.entry + .blk.entry { margin-top: 0; padding-top: calc(var(--gap) * .6); }
+.rpage.ev-timeline .col-main .blk.entry + .blk.entry .tl-dot { top: calc(var(--gap) * .6 + .3em); }
+/* date in a narrow left column (main column) */
+.rpage.ev-date-left .col-main .entry { display: grid; grid-template-columns: var(--date-w) minmax(0, 1fr); column-gap: 5mm; }
+.rpage.ev-date-left .col-main .entry-head { display: contents; }
+.rpage.ev-date-left .col-main .entry-date { grid-column: 1; grid-row: 1 / span 3; white-space: normal; padding-top: .12em; line-height: 1.3; }
+.rpage.ev-date-left .col-main .entry-main { grid-column: 2; grid-row: 1; }
+.rpage.ev-date-left .col-main .entry-desc, .rpage.ev-date-left .col-main .entry-fields { grid-column: 2; }
+/* cards */
+.rpage.ev-card .entry { padding: 2.6mm 3.2mm 2.8mm; border-radius: 6px; background: var(--c-card); }
+/* compact: title | subtitle on one line */
+/* (main column only: in a narrow sidebar the subtitle simply stacks) */
+.rpage.ev-compact .col-main .entry-main { display: flex; align-items: baseline; column-gap: .6em; }
+.rpage.ev-compact .col-main .entry-title { flex: 0 1 auto; max-width: 62%; }
+.rpage.ev-compact .col-main .entry-sub { flex: 1 1 0; min-width: 0; padding-left: .6em; border-left: 1.5px solid var(--c-line-soft); line-height: 1.2; }
+.rpage.ev-compact .entry-desc { margin-top: .15em; }
+/* date under the title, in accent */
+.rpage.ev-inline-date .entry-head { flex-direction: column; align-items: flex-start; gap: 0; }
+.rpage.ev-inline-date .entry-main { display: contents; }
+.rpage.ev-inline-date .entry-title { order: 0; }
+.rpage.ev-inline-date .entry-date { order: 1; color: var(--c-acc); white-space: normal; }
+.rpage.ev-inline-date .entry-sub { order: 2; }
+/* date pill */
+.rpage.ev-date-pill .entry-date { padding: .1em .6em; border-radius: 3px; background: var(--c-acc); color: var(--c-on-acc); font-size: calc(var(--fs) * .78); }
+/* rules between entries */
+.rpage.ev-ruled .col > .entry + .entry { padding-top: calc(var(--gap) * .6); border-top: 1px solid var(--c-rule); }
+
+/* =====================================================================================================
+   SIDEBAR (sv-) — two-column layouts only. Defaults use :where() so .tpl-x { --side-tint: … } wins.
+   ===================================================================================================== */
+:where(.rpage.sv-tint) { --side-tint: color-mix(in srgb, var(--accent) 7%, #fff); }
+:where(.rpage.sv-bordered) { --side-soft: color-mix(in srgb, var(--accent) 4%, #f8fafc); --side-edge: var(--accent); }
+:where(.rpage.sv-dark) { --side-bg: color-mix(in srgb, var(--accent) 28%, #0f172a); --side-fill: color-mix(in srgb, var(--accent) 38%, #fff); --side-title: #fff; }
+:where(.rpage.sv-dark-accent-titles) { --side-bg: #1c2230; --side-fill: color-mix(in srgb, var(--accent) 70%, #fff); --side-title: var(--side-fill); }
+:where(.rpage.sv-accent) { --side-solid: color-mix(in srgb, var(--accent) 76%, #000); --side-fill: #fff; --side-title: #fff; --side-on-fill: var(--accent); }
+:where(.rpage.sv-gradient) { --side-grad: color-mix(in srgb, var(--accent) 80%, #000); --side-grad-2: var(--accent-2); --side-fill: color-mix(in srgb, var(--accent) 22%, #fff); --side-title: #fff; }
+/* each surface has its own background variable, so a template's color for one style never leaks into another */
+.rpage.sv-tint .col-side { background: var(--side-tint); }
+.rpage.sv-bordered .col-side { background: var(--side-soft); }
+.rpage.sv-dark .col-side, .rpage.sv-dark-accent-titles .col-side { background: var(--side-bg); }
+.rpage.sv-accent .col-side { background: var(--side-solid); }
+.rpage.sv-gradient .col-side { background-color: var(--side-grad); background-image: linear-gradient(180deg, var(--side-grad) 0%, var(--side-grad-2) 100%); }
+/* cards / boxes on a tinted sidebar are white so they stay visible */
+.rpage.sv-tint .col-side, .rpage.sv-bordered .col-side { --c-card: #fff; }
+/* edges/dividers are drawn as border-left of the column on the right side so canvas conversion keeps them */
+.rpage.sv-plain.layout-left .col-main, .rpage.sv-plain.layout-right .col-side { border-left: 1px solid var(--side-rule, #dfe3ea); }
+.rpage.sv-bordered.layout-left .col-main, .rpage.sv-bordered.layout-right .col-side { border-left: 3px solid var(--side-edge); }
+
+/* =====================================================================================================
+   CONTACTS (cv-)
+   ===================================================================================================== */
+.rpage.cv-inline .contacts { gap: .3em .55em; }
+.rpage.cv-inline .ci-ico { display: none; }
+.rpage.cv-inline .hdr-top .ci-sep { display: block; color: var(--c-acc); }
+.rpage.cv-inline .hdr-side .contacts, .rpage.cv-inline.hv-split .hdr-top .contacts { gap: .35em; }
+.rpage.cv-pills .contacts { gap: .4em .4em; }
+.rpage.cv-pills .ci { padding: .2em .8em; border-radius: .9em; background: var(--c-chip-bg); color: var(--c-chip-fg); max-width: 100%; }
+.rpage.cv-pills .ci-ico { width: 1em; height: 1em; }
+.rpage.cv-stacked .hdr-top .contacts { flex-direction: column; flex-wrap: nowrap; gap: .3em; }
+.rpage.cv-stacked.hv-centered .hdr-top .contacts, .rpage.cv-stacked.hv-band-centered .hdr-top .contacts { align-items: center; }
+.rpage.cv-text-labels .ci { gap: .3em; }
+.rpage.cv-text-labels .ci-ico { display: none; }
+.rpage.cv-text-labels .ci-lbl { display: inline; font-weight: 600; color: var(--c-ink); }
+.rpage.cv-badges .contacts { gap: .45em 1.1em; }
+.rpage.cv-badges .ci-ico { width: 1.8em; height: 1.8em; padding: .42em; border-radius: 50%; background: var(--c-acc); color: var(--c-on-acc); }
+
+/* =====================================================================================================
+   PHOTO (ph-)
+   ===================================================================================================== */
+.rpage.ph-rounded .photo { border-radius: 14%; }
+.rpage.ph-square .photo { border-radius: 2px; }
+.rpage.ph-hexagon .photo { border-radius: 0; border: 0; clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); }
+.rpage.ph-ring .photo { border: 2.5px solid var(--c-acc); padding: 2.5px; background-clip: content-box; }
+.rpage.ph-ring .photo img { border-radius: 50%; }
+.rpage.ph-offset .photo { border-radius: 3px; box-shadow: 2mm 2mm 0 var(--c-acc); }
+.rpage.ph-none-default .photo { display: none; }
+
+/* =====================================================================================================
+   DENSITY (dn-) — scales margins, spacing and line height (render.js emits --pad-base/--gap-base/--lh-base)
+   ===================================================================================================== */
+.rpage.dn-compact { --pad: calc(var(--pad-base, 12mm) * .8); --gap: calc(var(--gap-base, 16px) * .68); --lh: calc(var(--lh-base, 1.45) * .94); }
+.rpage.dn-compact .entry-desc { margin-top: .2em; }
+.rpage.dn-airy { --pad: calc(var(--pad-base, 12mm) * 1.12); --gap: calc(var(--gap-base, 16px) * 1.32); --lh: calc(var(--lh-base, 1.45) * 1.07); }
+.rpage.dn-airy .entry-desc li + li { margin-top: .25em; }
+
+/* =====================================================================================================
+   BULLETS (bl-) — real list markers (list-style-type strings are kept by PDF export and canvas)
+   ===================================================================================================== */
+.rpage.bl-dash :is(.entry-desc, .txt) ul { list-style-type: "– "; }
+.rpage.bl-arrow :is(.entry-desc, .txt) ul { list-style-type: "› "; }
+.rpage.bl-check :is(.entry-desc, .txt) ul { list-style-type: "✓ "; }
+.rpage.bl-square :is(.entry-desc, .txt) ul { list-style-type: square; }
+.rpage.bl-circle :is(.entry-desc, .txt) ul { list-style-type: circle; }
+.rpage.bl-none :is(.entry-desc, .txt) ul { list-style-type: none; padding-left: 0; }
+
+/* =====================================================================================================
+   NAME / ROLE / CHIPS
+   ===================================================================================================== */
+.rpage.nc-upper .name { text-transform: uppercase; letter-spacing: .04em; }
+.rpage.rs-muted .role { color: var(--c-sub); }
+.rpage.rs-caps .role { text-transform: uppercase; letter-spacing: .18em; font-size: calc(var(--fs) * .9); }
+.rpage.rs-italic .role { font-style: italic; font-weight: 400; color: var(--c-sub); }
+.rpage.cs-outline .chip { background: transparent; border: 1px solid var(--c-chip-line); padding: calc(.15em - 1px) calc(.75em - 1px); }
+.rpage.cs-solid .chip { background: var(--c-acc); color: var(--c-on-acc); }
+.rpage.cs-square .chip { border-radius: 4px; }
+
+/* =====================================================================================================
+   PAGE DECORATION (pd-) — .pg-decor is an absolutely positioned overlay on every page; shapes stay inside
+   the page margins (sized from --pad) so they never cover text and never change column heights.
+   ===================================================================================================== */
+:where(.rpage) { --decor-w: calc(var(--pad) * .28); --decor-k: calc(var(--pad) * 1.55); }
+.rpage .pg-decor { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.rpage .pg-decor i { position: absolute; display: none; }
+.rpage.pd-top-stripe .pd-a { display: block; left: 0; right: 0; top: 0; height: var(--decor-w); background: var(--decor-c); }
+.rpage.pd-bottom-stripe .pd-a { display: block; left: 0; right: 0; bottom: 0; height: var(--decor-w); background: var(--decor-c); }
+.rpage.pd-left-stripe .pd-a { display: block; left: 0; top: 0; bottom: 0; width: var(--decor-w); background: var(--decor-c); }
+.rpage.pd-frame .pd-a { display: block; inset: calc(var(--pad) * .4); border: 1px solid var(--decor-c); }
+.rpage.pd-corner .pd-a, .rpage.pd-corners .pd-a { display: block; top: 0; right: 0; width: var(--decor-k); height: var(--decor-k); background: linear-gradient(to bottom left, var(--decor-c) 50%, transparent 50%); }
+.rpage.pd-corners .pd-b { display: block; bottom: 0; left: 0; width: var(--decor-k); height: var(--decor-k); background: linear-gradient(to top right, var(--accent-2) 50%, transparent 50%); }

@@ -1,0 +1,6 @@
+/* Resume Studio — Professional template styles (optional; the templates live in js/templates/professional.js)
+   Loaded after css/template-variants.css. Scope every rule to .tpl-<id>.
+   - Prefer variables: .tpl-x { --side-bg: #0f172a; --c-title: #111827; --head-bg: #123456; } (list in js/data.js).
+   - To tweak something a knob controls, qualify with the knob class so it switches off when the user
+     overrides that knob: .tpl-x.hv-band .name { … }   .tpl-x.ts-pill .sec-title h2 { … }
+   - Never put visible content in ::before/::after, never change .page/.pg-cols/.col sizes or positions. */
