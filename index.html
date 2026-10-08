@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resume Studio</title>
+  <meta name="description" content="Build a professional A4 resume from templates or design one from scratch with drag and drop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Roboto+Mono:wght@400;500;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/templates.css">
+</head>
+<body data-mode="template">
+  <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header class="topbar glass">
+    <div class="brand">
+      <div class="logo">R</div>
+      <div class="brand-txt"><b>Resume Studio</b><small>A4 resume builder</small></div>
+    </div>
+
+    <nav class="mode-switch" id="modeSwitch" data-active="template" aria-label="Editor mode">
+      <span class="mode-pill"></span>
+      <button type="button" data-mode="template" class="active">Templates &amp; Content</button>
+      <button type="button" data-mode="canvas">Canvas Designer</button>
+    </nav>
+
+    <div class="top-actions">
+      <button type="button" class="icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" aria-label="Undo">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+      </button>
+      <button type="button" class="icon-btn" id="redoBtn" title="Redo (Ctrl+Y)" aria-label="Redo">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
+      <div class="zoom" role="group" aria-label="Zoom">
+        <button type="button" id="zoomOut" title="Zoom out">−</button>
+        <span id="zoomVal">80%</span>
+        <button type="button" id="zoomIn" title="Zoom in">+</button>
+        <button type="button" id="zoomFit" class="fit" title="Fit to width">Fit</button>
+      </div>
+      <div class="dropdown">
+        <button type="button" class="btn ghost" id="fileMenuBtn">File
+          <svg class="ico sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="menu glass" id="fileMenu">
+          <button type="button" data-act="blank">New blank resume</button>
+          <button type="button" data-act="sample">Load sample resume</button>
+          <hr>
+          <button type="button" data-act="import">Import JSON…</button>
+          <button type="button" data-act="export">Export JSON</button>
+          <hr>
+          <button type="button" data-act="pdf">Print / Save as PDF</button>
+        </div>
+      </div>
+      <button type="button" class="btn primary" id="downloadBtn">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Download PDF</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- ============ Template mode ============ -->
+    <section class="mode mode-template active" id="modeTemplate">
+      <aside class="panel glass left-panel">
+        <div class="tabs" id="tplTabs" role="tablist">
+          <button type="button" data-tab="templates">Templates</button>
+          <button type="button" data-tab="content" class="active">Content</button>
+          <button type="button" data-tab="design">Design</button>
+        </div>
+        <div class="panel-scroll">
+          <div class="tab-body" data-tab-body="templates">
+            <p class="hint">Pick a template. Your content stays the same, so switch as often as you like.</p>
+            <div class="tpl-grid" id="tplGrid"></div>
+          </div>
+          <div class="tab-body active" data-tab-body="content">
+            <div id="contentForms"></div>
+          </div>
+          <div class="tab-body" data-tab-body="design">
+            <div id="designForms"></div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="stage" id="tplStage">
+        <div class="stage-bar glass">
+          <span id="pageInfo">A4 · 1 page</span>
+          <span class="sep"></span>
+          <button type="button" class="link" id="toCanvasBtn" title="Convert this resume into freely editable canvas elements">Customize freely in Canvas →</button>
+        </div>
+        <div class="pages" id="tplPages"></div>
+      </div>
+    </section>
+
+    <!-- ============ Canvas mode ============ -->
+    <section class="mode mode-canvas" id="modeCanvas">
+      <aside class="panel glass left-panel">
+        <div class="panel-scroll">
+          <div class="pgroup">
+            <div class="pgroup-title">Start from</div>
+            <div class="start-grid">
+              <button type="button" class="start-btn" id="cvFromTpl"><b>My template</b><small>Convert the current resume</small></button>
+              <button type="button" class="start-btn" id="cvStarter"><b>Starter layout</b><small>Sidebar design</small></button>
+              <button type="button" class="start-btn" id="cvBlank"><b>Blank page</b><small>Your own creation</small></button>
+            </div>
+          </div>
+          <div class="pgroup">
+            <div class="pgroup-title">Elements <small>drag onto a page</small></div>
+            <div class="palette" id="palette"></div>
+          </div>
+          <div class="pgroup">
+            <button type="button" class="btn block" id="cvAddPage">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add A4 page</span>
+            </button>
+            <p class="hint">Tip: drop image files from your computer straight onto a page.</p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="stage" id="cvStage">
+        <div class="pages" id="cvPages"></div>
+      </div>
+
+      <aside class="panel glass right-panel" id="propsPanel"></aside>
+    </section>
+  </main>
+
+  <div id="measureHost" class="pages" aria-hidden="true"></div>
+  <input type="file" id="importInput" accept=".json,application/json" hidden>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
