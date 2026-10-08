@@ -1,4 +1,4 @@
-/* Resume Studio — app core: state, history, persistence, mode switching, zoom, export */
+/* Resume Studio — app core: state, documents, history, persistence, mode switching, zoom, export */
 
 let toastTimer = null;
 function toast(msg) {
@@ -10,48 +10,219 @@ function toast(msg) {
 }
 
 const App = {
-  KEY: 'resume-studio:v1',
-  state: null,
+  KEY: 'resume-studio:v1',        // single resume saved by older versions (migrated into the Store once)
+  UI_KEY: 'resume-studio:ui',     // UI preferences: mode, tab, zoom
+  HIST_MAX: 80,                   // undo steps
+  HIST_CHARS: 40e6,               // total size of undo snapshots (images make them big)
+  state: null,                    // { mode, tab, zoom, data, design, canvas } — null until loaded
+  doc: null,                      // open document: { id, name, named, createdAt, updatedAt }
   hist: [],
   hi: -1,
+  histSize: 0,
   saveTimer: null,
   previewTimer: null,
+  saveSeq: 0,
   storageWarned: false,
 
-  fresh() {
+  /* ----- documents ----- */
+  newState(kind) {
     return {
-      mode: 'template', tab: 'content', zoom: 0.8,
-      data: sampleData(),
+      data: kind === 'blank' ? blankData() : sampleData(),
       design: { ...DEFAULT_DESIGN },
       canvas: { pages: [{ id: uid(), bg: '#ffffff', elements: [] }] },
     };
   },
-  load() {
+  autoName(data) {
+    const n = String((data && data.personal && data.personal.name) || '').trim();
+    return n && n !== 'Your Name' ? `${n} — Resume` : 'Untitled resume';
+  },
+  makeDoc(state, name) {
+    const now = Date.now();
+    return { id: `d${now.toString(36)}${uid()}`, name: name || this.autoName(state.data), named: !!name, createdAt: now, updatedAt: now, state };
+  },
+  /** resume content of a stored document, repaired where needed */
+  docState(doc) {
+    const s = doc.state || {};
+    const data = s.data && s.data.personal && Array.isArray(s.data.sections) ? s.data : blankData();
+    if (!Array.isArray(data.personal.extra)) data.personal.extra = [];
+    return {
+      data,
+      design: { ...DEFAULT_DESIGN, ...(s.design || {}) },
+      canvas: s.canvas && Array.isArray(s.canvas.pages) && s.canvas.pages.length ? s.canvas : this.newState('blank').canvas,
+    };
+  },
+  loadLegacy() {
     try {
       const s = JSON.parse(localStorage.getItem(this.KEY));
-      if (!s || !s.data || !s.design || !s.canvas) return null;
-      s.design = { ...DEFAULT_DESIGN, ...s.design };
-      return s;
+      return s && s.data && s.data.personal && Array.isArray(s.data.sections) ? s : null;
     } catch { return null; }
   },
-  save() {
-    try { localStorage.setItem(this.KEY, JSON.stringify(this.state)); }
-    catch {
-      if (!this.storageWarned) { toast('Browser storage is full — export your resume as JSON to keep it safe.'); this.storageWarned = true; }
+  /** the document to open on startup: the last one opened, else migrate the old single resume, else the sample */
+  async initialDoc(prefs) {
+    try {
+      const list = await Store.list();
+      if (list.length) {
+        const id = list.some((d) => d.id === Store.currentId) ? Store.currentId : list[0].id;
+        const doc = await Store.get(id);
+        if (doc) return doc;
+      }
+    } catch (e) { console.error(e); }
+    const legacy = this.loadLegacy();
+    if (legacy) ['mode', 'tab', 'zoom'].forEach((k) => { if (legacy[k] != null && prefs[k] == null) prefs[k] = legacy[k]; });
+    const doc = this.makeDoc(legacy ? this.docState({ state: legacy }) : this.newState('sample'));
+    try {
+      await Store.put(doc);
+      if (legacy) { try { localStorage.removeItem(this.KEY); } catch { /* harmless if it stays */ } }
+    } catch (e) { this.saveFailed(e); }
+    return doc;
+  },
+  setDoc(doc) {
+    this.doc = { id: doc.id, name: doc.name || this.autoName(doc.state && doc.state.data), named: !!doc.named, createdAt: doc.createdAt || Date.now(), updatedAt: doc.updatedAt || 0 };
+    Store.setCurrent(doc.id);
+    this.updateDocName();
+  },
+  updateDocName() {
+    if (!this.doc) return;
+    $('#docName').textContent = this.doc.name;
+    $('#docBtn').title = `${this.doc.name} — My resumes (Ctrl+O)`;
+    document.title = `${this.doc.name} · Resume Studio`;
+  },
+  /** replace the open resume with a stored document (fresh undo history) */
+  loadDoc(doc) {
+    if (this.state.mode === 'canvas') Canvas.deselect();
+    this.flush();
+    Object.assign(this.state, this.docState(doc));
+    this.setDoc(doc);
+    this.resetHistory();
+    this.refreshAll();
+    this.setSaveState('saved');
+    requestAnimationFrame(() => this.fitZoom());
+  },
+  async openDoc(id) {
+    if (this.doc && id === this.doc.id) return true;
+    if (this.state.mode === 'canvas') Canvas.deselect();
+    this.flush();
+    const doc = await Store.get(id);
+    if (!doc) { toast('That resume could not be found'); return false; }
+    this.loadDoc(doc);
+    toast(`Opened “${this.doc.name}”`);
+    return true;
+  },
+  /** store a new document and switch to it; never overwrites the open one */
+  async createDoc(state, name, msg) {
+    if (this.state.mode === 'canvas') Canvas.deselect();
+    this.flush();
+    const doc = this.makeDoc(state, name);
+    try { await Store.put(doc); } catch (e) { this.saveFailed(e); return null; }
+    this.loadDoc(doc);
+    if (msg) toast(msg);
+    return doc;
+  },
+  newDoc(kind) {
+    return this.createDoc(this.newState(kind), null, kind === 'blank' ? 'New blank resume created' : 'New resume created from the sample');
+  },
+  async duplicateDoc(id = this.doc.id) {
+    let src;
+    if (id === this.doc.id) {
+      this.flush();
+      const { data, design, canvas } = this.state;
+      src = { name: this.doc.name, state: clone({ data, design, canvas }) };
+    } else src = await Store.get(id);
+    if (!src) { toast('That resume could not be found'); return null; }
+    return this.createDoc(src.state, `${src.name} (copy)`, `Duplicated as “${src.name} (copy)”`);
+  },
+  async renameDoc(id, name) {
+    name = String(name || '').trim().slice(0, 120);
+    if (id === this.doc.id) {
+      this.doc.named = !!name;
+      this.doc.name = name || this.autoName(this.state.data);
+      this.updateDocName();
+      this.flush();
+      await this.save();
+      return this.doc.name;
     }
+    const d = await Store.get(id);
+    if (!d) return null;
+    d.named = !!name;
+    d.name = name || this.autoName(d.state && d.state.data);
+    d.updatedAt = Date.now();
+    await Store.put(d);
+    return d.name;
+  },
+  /** delete a document; deleting the open one switches to the most recent other one (or a new blank) */
+  async deleteDoc(id) {
+    const isCur = id === this.doc.id;
+    if (isCur) {
+      if (this.state.mode === 'canvas') Canvas.deselect();
+      clearTimeout(this.saveTimer); this.saveTimer = null; // a pending save must not bring it back
+    }
+    await Store.remove(id);
+    if (!isCur) return true;
+    const rest = (await Store.list()).filter((d) => d.id !== id);
+    const next = rest.length ? await Store.get(rest[0].id) : null;
+    if (next) this.loadDoc(next);
+    else await this.createDoc(this.newState('blank'));
+    return true;
   },
 
-  /* ----- history (undo / redo) ----- */
+  /* ----- persistence ----- */
+  loadPrefs() {
+    try { const p = JSON.parse(localStorage.getItem(this.UI_KEY)); return p && typeof p === 'object' ? p : {}; } catch { return {}; }
+  },
+  savePrefs() {
+    if (!this.state) return;
+    const { mode, tab, zoom } = this.state;
+    try { localStorage.setItem(this.UI_KEY, JSON.stringify({ mode, tab, zoom })); } catch { /* storage unavailable */ }
+  },
+  /** write the open document to the Store; resolves true when saved */
+  save() {
+    if (!this.state || !this.doc) return Promise.resolve(false);
+    this.savePrefs();
+    const d = this.doc;
+    const { data, design, canvas } = this.state;
+    d.updatedAt = Math.max(Date.now(), (d.updatedAt || 0) + 1);
+    if (!d.named) { d.name = this.autoName(data); this.updateDocName(); }
+    const seq = ++this.saveSeq;
+    this.setSaveState('saving');
+    return Store.put({ ...d, state: { data, design, canvas } }).then(() => {
+      if (seq === this.saveSeq && !this.saveTimer) this.setSaveState('saved');
+      this.storageWarned = false;
+      Store.persist();
+      return true;
+    }, (e) => { if (seq === this.saveSeq) this.saveFailed(e); return false; });
+  },
+  saveFailed(e) {
+    console.error('Resume Studio: save failed', e);
+    const full = e && (e.name === 'QuotaExceededError' || /quota/i.test(e.message || ''));
+    this.setSaveState('error', full ? 'Browser storage is full — changes are not saved. Export JSON to keep them.' : 'Changes could not be saved in this browser. Export JSON to keep them.');
+    if (!this.storageWarned) {
+      toast(full ? 'Browser storage is full — export your resume as JSON to keep it safe.' : 'Could not save in this browser — export your resume as JSON to keep it safe.');
+      this.storageWarned = true;
+    }
+  },
+  setSaveState(s, title) {
+    const el = $('#saveState');
+    if (!el) return;
+    if (s === 'saved' && Store.backend === 'memory') { s = 'error'; title = 'Browser storage is blocked — changes are lost when you close this page. Export JSON to keep them.'; }
+    el.dataset.state = s;
+    document.body.dataset.save = s;
+    $('.save-txt', el).textContent = { saved: 'Saved', saving: 'Saving…', error: 'Not saved' }[s];
+    el.title = title || { saved: 'All changes are saved in this browser', saving: 'Saving your changes…', error: 'Changes are not saved' }[s];
+  },
+
+  /* ----- history (undo / redo), one per document ----- */
   snap() { const { data, design, canvas } = this.state; return JSON.stringify({ data, design, canvas }); },
   snapshot() {
     const s = this.snap();
     if (this.hist[this.hi] === s) return;
-    this.hist = this.hist.slice(0, this.hi + 1);
+    this.hist.splice(this.hi + 1).forEach((x) => { this.histSize -= x.length; });
     this.hist.push(s);
-    if (this.hist.length > 80) this.hist.shift();
+    this.histSize += s.length;
+    while (this.hist.length > 1 && (this.hist.length > this.HIST_MAX || this.histSize > this.HIST_CHARS)) this.histSize -= this.hist.shift().length;
     this.hi = this.hist.length - 1;
     this.updateUndo();
   },
+  resetHistory() { this.hist = []; this.hi = -1; this.histSize = 0; this.snapshot(); },
   flush() {
     if (!this.saveTimer) return;
     clearTimeout(this.saveTimer);
@@ -74,14 +245,17 @@ const App = {
 
   /* ----- change notifications -----
      Other modules can listen for these DOM events on `document`:
+       resume:ready           — first document loaded and UI built (App.state is set from here on;
+                                App.ready is the same moment as a Promise)
        resume:changed {kind}  — any edit ('data' | 'design' | 'canvas')
-       resume:refresh         — whole state replaced (undo/redo, import, new resume)
+       resume:refresh         — whole state replaced (undo/redo, import, switching / new resume)
        resume:tab {tab}       — template-mode panel tab switched
        resume:mode {mode}     — editor mode switched ('template' | 'canvas') */
   emit(name, detail) { document.dispatchEvent(new CustomEvent(name, { detail })); },
   changed(kind) {
     this.emit('resume:changed', { kind });
     if (kind !== 'canvas') { this.schedulePreview(); Gallery.markDirty(); }
+    this.setSaveState('saving');
     clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => { this.saveTimer = null; this.snapshot(); this.save(); }, 350);
   },
@@ -97,7 +271,7 @@ const App = {
     this.previewTimer = setTimeout(() => this.renderPreview(), 90);
   },
   renderPreview() {
-    if (this.state.mode !== 'template') return;
+    if (!this.state || this.state.mode !== 'template') return;
     const n = Render.render($('#tplPages'), this.state.data, this.state.design);
     $('#pageInfo').textContent = `A4 · ${n} page${n > 1 ? 's' : ''}`;
   },
@@ -139,7 +313,7 @@ const App = {
     $('#modeCanvas').classList.toggle('active', mode === 'canvas');
     document.body.dataset.mode = mode;
     if (mode === 'template') { this.renderPreview(); Gallery.refresh(); } else Canvas.render();
-    this.save();
+    this.savePrefs();
     this.emit('resume:mode', { mode });
   },
   setTab(tab) {
@@ -147,6 +321,7 @@ const App = {
     $$('#tplTabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
     $$('[data-tab-body]').forEach((b) => b.classList.toggle('active', b.dataset.tabBody === tab));
     if (tab === 'templates') Gallery.refresh(true);
+    this.savePrefs();
     this.emit('resume:tab', { tab });
   },
   setZoom(z) {
@@ -154,6 +329,8 @@ const App = {
     this.state.zoom = z;
     ['#tplPages', '#cvPages'].forEach((s) => $(s).style.setProperty('--zoom', z));
     $('#zoomVal').textContent = `${Math.round(z * 100)}%`;
+    clearTimeout(this._zt);
+    this._zt = setTimeout(() => this.savePrefs(), 300);
   },
   fitZoom() {
     const stage = this.state.mode === 'canvas' ? $('#cvStage') : $('#tplStage');
@@ -162,35 +339,42 @@ const App = {
   },
 
   /* ----- file operations ----- */
-  exportJSON() {
-    this.flush();
-    const { data, design, canvas } = this.state;
-    const blob = new Blob([JSON.stringify({ app: 'resume-studio', version: 1, data, design, canvas }, null, 2)], { type: 'application/json' });
-    const a = h('a', { href: URL.createObjectURL(blob), download: `${(data.personal.name || 'resume').replace(/[^\w-]+/g, '_')}.resume.json` });
+  fileName(data) { return `${(data.personal.name || 'resume').replace(/[^\w-]+/g, '_')}.resume.json`; },
+  /** download a document as JSON (the open one by default) */
+  async exportJSON(id) {
+    let name, state;
+    if (!id || id === this.doc.id) {
+      this.flush();
+      const { data, design, canvas } = this.state;
+      name = this.doc.name; state = { data, design, canvas };
+    } else {
+      const d = await Store.get(id);
+      if (!d) { toast('That resume could not be found'); return false; }
+      name = d.name; state = d.state;
+    }
+    const blob = new Blob([JSON.stringify({ app: 'resume-studio', version: 1, name, ...state }, null, 2)], { type: 'application/json' });
+    const a = h('a', { href: URL.createObjectURL(blob), download: this.fileName(state.data) });
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    toast('Resume exported as JSON');
+    toast(`“${name}” exported as JSON`);
+    return true;
   },
+  pickImport() { $('#importInput').click(); },
+  /** import a JSON backup as a NEW document and switch to it */
   importJSON(file) {
     const fr = new FileReader();
-    fr.onload = () => {
+    fr.onload = async () => {
+      let o;
       try {
-        const o = JSON.parse(fr.result);
+        o = JSON.parse(fr.result);
         if (!o.data || !o.data.personal || !Array.isArray(o.data.sections)) throw new Error('bad');
-        this.state.data = o.data;
-        this.state.design = { ...DEFAULT_DESIGN, ...(o.design || {}) };
-        if (o.canvas && Array.isArray(o.canvas.pages)) this.state.canvas = o.canvas;
-        this.refreshAll(); this.snapshot(); this.save();
-        toast('Resume imported');
-      } catch { toast('That file is not a valid Resume Studio JSON'); }
+      } catch { toast('That file is not a valid Resume Studio JSON'); return; }
+      const state = this.docState({ state: { data: o.data, design: o.design, canvas: o.canvas } });
+      const name = typeof o.name === 'string' && o.name.trim() ? o.name.trim().slice(0, 120) : null;
+      const doc = await this.createDoc(state, name);
+      if (doc) toast(`Imported “${doc.name}” as a new resume`);
     };
     fr.readAsText(file);
-  },
-  newResume(sample) {
-    if (!confirm(sample ? 'Load the sample resume? Your current content will be replaced (you can undo).' : 'Start a new blank resume? Your current content will be replaced (you can undo).')) return;
-    this.state.data = sample ? sampleData() : blankData();
-    this.refreshAll(); this.snapshot(); this.save();
-    toast(sample ? 'Sample resume loaded' : 'New blank resume');
   },
   print() {
     this.flush();
@@ -199,6 +383,24 @@ const App = {
     document.title = (this.state.data.personal.name || 'Resume').trim() + ' - Resume';
     toast('In the print dialog choose “Save as PDF”, paper A4, margins None.');
     setTimeout(() => { window.print(); document.title = old; }, 300);
+  },
+
+  /** another tab may have saved this document since we loaded it: offer to reload */
+  async checkExternal() {
+    if (!this.doc || this._extBusy || this._extNotice) return;
+    this._extBusy = true;
+    try {
+      const d = await Store.get(this.doc.id);
+      if (!d || !(d.updatedAt > this.doc.updatedAt)) return;
+      this._extNotice = DocManager.notify('This resume was changed in another tab or window.', [
+        { label: 'Keep mine', run: () => { this._extNotice = null; if (this.doc && this.doc.id === d.id) { this.doc.updatedAt = Math.max(this.doc.updatedAt, d.updatedAt); this.save(); } } },
+        { label: 'Load latest', primary: true, run: async () => {
+          this._extNotice = null;
+          const latest = await Store.get(d.id);
+          if (latest && this.doc && this.doc.id === latest.id) { clearTimeout(this.saveTimer); this.saveTimer = null; this.loadDoc(latest); toast('Loaded the latest version'); }
+        } },
+      ]);
+    } catch { /* not critical */ } finally { this._extBusy = false; }
   },
 
   /* ----- wiring ----- */
@@ -210,6 +412,10 @@ const App = {
     $('#zoomIn').addEventListener('click', () => this.setZoom(this.state.zoom + 0.1));
     $('#zoomOut').addEventListener('click', () => this.setZoom(this.state.zoom - 0.1));
     $('#zoomFit').addEventListener('click', () => this.fitZoom());
+    $('#docBtn').addEventListener('click', () => DocManager.open());
+    const logo = $('.topbar .logo');
+    logo.addEventListener('click', () => DocManager.open());
+    logo.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); DocManager.open(); } });
     const dlMenu = $('#downloadMenu');
     $('#downloadBtn').addEventListener('click', (e) => { e.stopPropagation(); $('#fileMenu').classList.remove('open'); dlMenu.classList.toggle('open'); });
     document.addEventListener('click', () => dlMenu.classList.remove('open'));
@@ -219,7 +425,9 @@ const App = {
       dlMenu.classList.remove('open');
       ({
         pdf: () => Exporter.pdf($('#downloadBtn')),
+        png: () => Exporter.png($('#downloadBtn')),
         excel: () => Exporter.excel(),
+        txt: () => Exporter.txt(),
         print: () => this.print(),
         json: () => this.exportJSON(),
       })[a]?.();
@@ -241,9 +449,11 @@ const App = {
       if (!a) return;
       menu.classList.remove('open');
       ({
-        blank: () => this.newResume(false),
-        sample: () => this.newResume(true),
-        import: () => fileInput.click(),
+        docs: () => DocManager.open(),
+        blank: () => this.newDoc('blank'),
+        sample: () => this.newDoc('sample'),
+        duplicate: () => this.duplicateDoc(),
+        import: () => this.pickImport(),
         export: () => this.exportJSON(),
       })[a]?.();
     });
@@ -267,15 +477,22 @@ const App = {
       const typing = t.matches('input, textarea, select, [contenteditable="true"]');
       const mod = e.ctrlKey || e.metaKey;
       const k = e.key.toLowerCase();
+      if (mod && k === 'o' && !e.shiftKey && !e.altKey) { e.preventDefault(); DocManager.open(); return; }
+      if (mod && k === 's') { e.preventDefault(); this.flush(); this.save().then((ok) => toast(ok ? 'Saved in this browser' : 'Could not save — export JSON to keep your changes')); return; }
+      if (DocManager.isOpen()) { if (mod && k === 'p') e.preventDefault(); return; }
       if (mod && k === 'z' && !typing) { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return; }
       if (mod && k === 'y' && !typing) { e.preventDefault(); this.redo(); return; }
       if (mod && k === 'p') { e.preventDefault(); this.print(); return; }
-      if (mod && k === 's') { e.preventDefault(); this.flush(); this.save(); toast('Saved in this browser'); return; }
       if (this.state.mode === 'canvas') Canvas.onKey(e, typing);
     });
 
     window.addEventListener('beforeprint', () => { if (this.state.mode === 'canvas') Canvas.deselect(); });
     window.addEventListener('resize', () => { clearTimeout(this._rz); this._rz = setTimeout(() => Gallery.refresh(), 200); });
+
+    // save before the page goes away; look for edits made in other tabs when it comes back
+    window.addEventListener('pagehide', () => this.flush());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.flush(); else this.checkExternal(); });
+    window.addEventListener('focus', () => this.checkExternal());
 
     // re-paginate once web fonts finish loading (metrics change)
     if (document.fonts) {
@@ -284,20 +501,30 @@ const App = {
     }
   },
 
-  init() {
-    this.state = this.load() || this.fresh();
+  async init() {
     this.initTheme();
+    await Store.init();
+    const prefs = this.loadPrefs();
+    const doc = await this.initialDoc(prefs);
+    this.state = { mode: prefs.mode === 'canvas' ? 'canvas' : 'template', tab: prefs.tab || 'content', zoom: +prefs.zoom || 0.8, ...this.docState(doc) };
+    this.setDoc(doc);
     this.bindUI();
     Canvas.init();
     Editor.build();
     Design.build();
     Gallery.build();
-    this.setTab(this.state.tab || 'content');
-    this.setMode(this.state.mode || 'template');
-    this.setZoom(this.state.zoom || 0.8);
+    this.setTab(this.state.tab);
+    this.setMode(this.state.mode);
+    this.setZoom(this.state.zoom);
     requestAnimationFrame(() => this.fitZoom());
     this.snapshot();
+    if ($('#saveState').dataset.state !== 'error') this.setSaveState('saved');
+    if (Store.backend === 'memory') toast('Browser storage is blocked here — export your resume as JSON before closing this page.');
+    this._ready();
+    this.emit('resume:ready');
   },
 };
+/** resolves once the first document is loaded and the UI is built (App.state is set) */
+App.ready = new Promise((res) => { App._ready = res; });
 
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => App.init().catch((e) => { console.error(e); toast('Resume Studio could not start — please reload the page.'); }));

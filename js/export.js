@@ -1,4 +1,4 @@
-/* Resume Studio — dependency-free exports: PDF file (rendered pages + searchable text layer) and Excel (.xlsx) */
+/* Resume Studio — dependency-free exports: PDF file (rendered pages + searchable text layer), PNG images, Excel (.xlsx) and plain text */
 
 const Exporter = (() => {
   const enc = new TextEncoder();
@@ -10,7 +10,7 @@ const Exporter = (() => {
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   }
 
-  /* ================= ZIP (store only) — used for .xlsx ================= */
+  /* ================= ZIP (store only) — used for .xlsx and multi-page PNG ================= */
   const CRC_TABLE = (() => {
     const t = new Uint32Array(256);
     for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
@@ -268,6 +268,7 @@ const Exporter = (() => {
     return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('render failed')); i.src = src; });
   }
 
+  /** Draw one laid-out page into a white canvas (scale = device px per CSS px). */
   async function rasterize(page, scale) {
     const W = Math.round(PAGE_W), H = Math.round(PAGE_H);
     const node = inlineClone(page);
@@ -286,6 +287,9 @@ const Exporter = (() => {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    return cv;
+  }
+  function jpegBytes(cv) {
     const jpeg = cv.toDataURL('image/jpeg', 0.92);
     const bin = atob(jpeg.split(',')[1]);
     const bytes = new Uint8Array(bin.length);
@@ -369,9 +373,11 @@ const Exporter = (() => {
     return new Blob(chunks, { type: 'application/pdf' });
   }
 
-  /** Render the active mode's pages at 100% in an off-screen host, then rasterize each one. */
-  async function pdf(btn) {
-    App.flush();
+  /* ================= page rendering (shared by PDF and PNG) ================= */
+  let busy = false;
+
+  /** Lay out the active mode's pages at 100% in the off-screen host; returns the .page elements. */
+  function preparePages() {
     const host = $('#exportHost');
     host.innerHTML = '';
     if (App.state.mode === 'canvas') {
@@ -385,30 +391,140 @@ const Exporter = (() => {
     } else {
       Render.render(host, App.state.data, App.state.design);
     }
-    const pages = $$('.page', host);
-    if (btn) btn.disabled = true;
+    return $$('.page', host);
+  }
+
+  /**
+   * Rasterize every page of the open resume exactly as shown (template or canvas mode).
+   *   scale      device px per CSS px: 2 → 1588 × 2246 px per A4 page
+   *   onPage(pageEl, index, count, canvas)  optional; runs while the page is still laid out,
+   *                                          its (awaited) return value is kept as `extra`
+   *   progress(index, count)                optional; called before each page is drawn
+   * Resolves to [{ canvas, width, height, extra }].
+   */
+  async function renderPages(scale = 2, { onPage, progress } = {}) {
+    App.flush();
+    const pages = preparePages();
     try {
       if (document.fonts) await document.fonts.ready;
       const out = [];
       for (const [i, pg] of pages.entries()) {
-        toast(`Creating PDF… page ${i + 1} of ${pages.length}`);
-        out.push({ img: await rasterize(pg, 2.5), text: textLayer(pg) });
+        if (progress) progress(i, pages.length);
+        const canvas = await rasterize(pg, scale);
+        const item = { canvas, width: canvas.width, height: canvas.height };
+        if (onPage) item.extra = await onPage(pg, i, pages.length, canvas);
+        out.push(item);
       }
-      const name = (App.state.data.personal.name || 'Resume').trim();
-      const blob = buildPdf(out, `${name} - Resume`);
-      saveBlob(blob, `${fileBase()}_Resume.pdf`);
-      toast(`PDF downloaded (${pages.length} A4 page${pages.length > 1 ? 's' : ''})`);
-      return blob;
-    } catch (e) {
-      console.error(e);
-      toast('Could not create the PDF file here — opening the print dialog instead.');
-      App.print();
-      return null;
+      return out;
     } finally {
-      host.innerHTML = '';
-      if (btn) btn.disabled = false;
+      $('#exportHost').innerHTML = '';
     }
   }
 
-  return { excel, pdf, zip, buildSheets };
+  /** Disable the button and ignore new requests while an export runs. */
+  async function guarded(btn, fn) {
+    if (busy) { toast('Please wait — an export is already running'); return null; }
+    busy = true;
+    if (btn) btn.disabled = true;
+    try { return await fn(); } finally { busy = false; if (btn) btn.disabled = false; }
+  }
+
+  /* ================= PDF ================= */
+  function pdf(btn) {
+    return guarded(btn, async () => {
+      try {
+        const out = await renderPages(2.5, {
+          progress: (i, n) => toast(`Creating PDF… page ${i + 1} of ${n}`),
+          onPage: (pg, i, n, cv) => { const img = jpegBytes(cv); cv.width = cv.height = 0; return { img, text: textLayer(pg) }; },
+        });
+        const name = (App.state.data.personal.name || 'Resume').trim();
+        const blob = buildPdf(out.map((p) => p.extra), `${name} - Resume`);
+        saveBlob(blob, `${fileBase()}_Resume.pdf`);
+        toast(`PDF downloaded (${out.length} A4 page${out.length > 1 ? 's' : ''})`);
+        return blob;
+      } catch (e) {
+        console.error(e);
+        toast('Could not create the PDF file here — opening the print dialog instead.');
+        App.print();
+        return null;
+      }
+    });
+  }
+
+  /* ================= PNG (one page → .png, several → .zip of page-N.png) ================= */
+  const pngBlob = (cv) => new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error('PNG encoding failed'))), 'image/png'));
+  function png(btn) {
+    return guarded(btn, async () => {
+      try {
+        const out = await renderPages(2, {
+          progress: (i, n) => toast(`Creating PNG… page ${i + 1} of ${n}`),
+          onPage: async (pg, i, n, cv) => { const b = await pngBlob(cv); cv.width = cv.height = 0; return b; },
+        });
+        const blobs = out.map((p) => p.extra);
+        if (blobs.length === 1) {
+          saveBlob(blobs[0], `${fileBase()}_Resume.png`);
+          toast(`PNG image downloaded (${out[0].width} × ${out[0].height} px)`);
+          return blobs[0];
+        }
+        const files = await Promise.all(blobs.map(async (b, i) => ({ name: `page-${i + 1}.png`, data: new Uint8Array(await b.arrayBuffer()) })));
+        const blob = zip(files);
+        saveBlob(blob, `${fileBase()}_Resume_PNG.zip`);
+        toast(`${blobs.length} PNG pages downloaded as a .zip`);
+        return blob;
+      } catch (e) {
+        console.error(e);
+        toast('Could not create the PNG image in this browser.');
+        return null;
+      }
+    });
+  }
+
+  /* ================= plain text (ATS-friendly) ================= */
+  const LEVEL_WORDS = ['', 'Beginner', 'Elementary', 'Intermediate', 'Advanced', 'Expert'];
+  const flat = (s) => String(s ?? '').replace(/\*\*(.+?)\*\*/g, '$1').replace(/(^|[^*])\*([^*]+?)\*/g, '$1$2').replace(/\s+/g, ' ').trim();
+  const textLines = (s) => String(s || '').split('\n').map((l) => l.trim()).filter(Boolean)
+    .map((l) => { const m = l.match(/^[-*•]\s+(.*)/); return m ? `- ${flat(m[1])}` : flat(l); });
+
+  /** The resume as plain text: name, title, contact line, then every visible section. */
+  function plainText(data = App.state.data, design = App.state.design) {
+    const p = data.personal || {};
+    const out = [];
+    if (flat(p.name)) out.push(flat(p.name));
+    if (flat(p.title)) out.push(flat(p.title));
+    const contact = [p.email, p.phone, p.location, p.website, p.linkedin, ...(p.extra || []).map((f) => (flat(f.value) ? (f.label ? `${flat(f.label)}: ${flat(f.value)}` : f.value) : ''))]
+      .map(flat).filter(Boolean);
+    if (contact.length) out.push(contact.join(' | '));
+    const listStyle = ['text', 'tags'].includes(Render.effective(design).skillStyle);
+    (data.sections || []).filter((s) => s.visible !== false).forEach((s) => {
+      const items = visibleItems(s);
+      const body = [];
+      if (s.type === 'text') body.push(...textLines(s.content));
+      else if (s.type === 'tags') { if (items.length) body.push(items.map((i) => flat(i.name)).filter(Boolean).join(', ')); }
+      else if (s.type === 'skills') {
+        if (listStyle) body.push(items.map((i) => flat(i.name)).filter(Boolean).join(', '));
+        else items.forEach((i) => { const lvl = Math.max(0, Math.min(5, +i.level || 0)); if (flat(i.name)) body.push(`- ${flat(i.name)}${lvl ? ` (${LEVEL_WORDS[lvl]})` : ''}`); });
+      } else {
+        items.forEach((i, n) => {
+          if (n) body.push('');
+          if (flat(i.title)) body.push(flat(i.title));
+          const meta = [i.subtitle, i.location, i.date].map(flat).filter(Boolean);
+          if (meta.length) body.push(meta.join(' | '));
+          (i.fields || []).forEach((f) => { if (flat(f.value)) body.push(f.label ? `${flat(f.label)}: ${flat(f.value)}` : flat(f.value)); });
+          body.push(...textLines(i.description));
+        });
+      }
+      if (!body.some(Boolean)) return;
+      out.push('', flat(s.title).toUpperCase() || 'SECTION', ...body);
+    });
+    return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+  }
+  function txt() {
+    App.flush();
+    const blob = new Blob([plainText()], { type: 'text/plain;charset=utf-8' });
+    saveBlob(blob, `${fileBase()}_Resume.txt`);
+    toast('Plain-text resume downloaded (.txt)');
+    return blob;
+  }
+
+  return { excel, pdf, png, txt, plainText, renderPages, zip, buildSheets };
 })();
