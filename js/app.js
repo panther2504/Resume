@@ -72,8 +72,15 @@ const App = {
     $('#redoBtn').disabled = this.hi >= this.hist.length - 1;
   },
 
-  /* ----- change notifications ----- */
+  /* ----- change notifications -----
+     Other modules can listen for these DOM events on `document`:
+       resume:changed {kind}  — any edit ('data' | 'design' | 'canvas')
+       resume:refresh         — whole state replaced (undo/redo, import, new resume)
+       resume:tab {tab}       — template-mode panel tab switched
+       resume:mode {mode}     — editor mode switched ('template' | 'canvas') */
+  emit(name, detail) { document.dispatchEvent(new CustomEvent(name, { detail })); },
   changed(kind) {
+    this.emit('resume:changed', { kind });
     if (kind !== 'canvas') { this.schedulePreview(); Gallery.markDirty(); }
     clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => { this.saveTimer = null; this.snapshot(); this.save(); }, 350);
@@ -82,6 +89,7 @@ const App = {
   refreshAll() {
     Editor.build(); Design.build(); Gallery.build(); Canvas.reset();
     this.renderPreview();
+    this.emit('resume:refresh');
   },
 
   schedulePreview() {
@@ -132,12 +140,14 @@ const App = {
     document.body.dataset.mode = mode;
     if (mode === 'template') { this.renderPreview(); Gallery.refresh(); } else Canvas.render();
     this.save();
+    this.emit('resume:mode', { mode });
   },
   setTab(tab) {
     this.state.tab = tab;
     $$('#tplTabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
     $$('[data-tab-body]').forEach((b) => b.classList.toggle('active', b.dataset.tabBody === tab));
     if (tab === 'templates') Gallery.refresh(true);
+    this.emit('resume:tab', { tab });
   },
   setZoom(z) {
     z = Math.max(0.3, Math.min(2, Math.round(z * 100) / 100));
