@@ -4,3 +4,65 @@
    - To tweak something a knob controls, qualify with the knob class so it switches off when the user
      overrides that knob: .tpl-x.hv-band .name { … }   .tpl-x.ts-pill .sec-title h2 { … }
    - Never put visible content in ::before/::after, never change .page/.pg-cols/.col sizes or positions. */
+
+/* Anchor — light accent keel line under the band, airy tracking on the hairline titles */
+.tpl-professional-anchor { --c-name: color-mix(in srgb, var(--accent) 70%, #0b1220); }
+.rpage.tpl-professional-anchor.hv-band-centered .pg-header { border-bottom: 1.2mm solid color-mix(in srgb, var(--accent) 58%, #fff); }
+.rpage.tpl-professional-anchor.ts-line-after .sec-title h2 { letter-spacing: .14em; }
+.rpage.tpl-professional-anchor.ts-line-after .sec-line { background: color-mix(in srgb, var(--accent) 22%, #fff); }
+
+/* Anchor, Beacon (inline contacts): if the user picks the split header, contacts stack, so hide the • separators */
+.rpage:is(.tpl-professional-anchor, .tpl-professional-beacon).hv-split.cv-inline .hdr-top .ci-sep { display: none; }
+
+/* Lighthouse — contacts separated from the name by a hairline inside the teal block */
+.tpl-professional-lighthouse { --photo-bw: 3px; --c-date: #5b6472; }
+.rpage.tpl-professional-lighthouse.hv-band .hdr-side .name { font-size: calc(var(--fs) * 2.2 * var(--name-scale, 1)); }
+.rpage.tpl-professional-lighthouse.hv-band .hdr-side .contacts { margin-top: 1mm; padding-top: 4mm; border-top: 1px solid var(--c-rule); }
+
+/* Pier — serif entry titles and hairline skill bars */
+.tpl-professional-pier .entry-title { font-family: var(--font-head); font-size: calc(var(--fs) * 1.08); }
+.tpl-professional-pier .bar { height: 3px; border-radius: 0; }
+.tpl-professional-pier .bar-fill { border-radius: 0; }
+.rpage.tpl-professional-pier.ts-caps-accent .sec-title h2 { letter-spacing: .12em; }
+
+/* Marina — seamless tinted L (header + sidebar), deep accent name, white contact pills on the tint */
+.tpl-professional-marina { --c-name: color-mix(in srgb, var(--accent) 55%, #0b1220); --c-date: #5b6472; }
+.rpage.tpl-professional-marina.hv-tinted .pg-header { border-bottom-color: transparent; }
+.rpage.tpl-professional-marina.hv-tinted.cv-pills .pg-header { --c-chip-bg: #fff; }
+
+/* Quay — deep slate name; one-line entries use the full row so short titles never wrap */
+.tpl-professional-quay { --c-name: color-mix(in srgb, var(--accent) 45%, #0b1220); }
+.rpage.tpl-professional-quay.ev-compact .col-main .entry-main { flex: 1 1 auto; }
+
+/* Beacon — letterhead frame (hairline box with a heavier top edge), lighter overlines */
+.rpage.tpl-professional-beacon.hv-boxed .hdr-top { border-width: 1px; border-top-width: 4px; border-radius: 0; }
+.rpage.tpl-professional-beacon.ts-overline .sec-title { border-top-width: 1.5px; padding-top: 1.8mm; }
+.rpage.tpl-professional-beacon.ts-overline .sec-title h2 { letter-spacing: .11em; }
+
+/* Cove — calmer name size in the sidebar, hairline above the contacts */
+.tpl-professional-cove { --c-date: #5b6472; }
+.rpage.tpl-professional-cove.hv-centered .hdr-side .name { font-size: calc(var(--fs) * 2.15 * var(--name-scale, 1)); }
+.rpage.tpl-professional-cove.hv-centered .hdr-side .contacts { padding-top: 3.5mm; border-top: 1px solid var(--c-line-soft); }
+
+/* Wharf — tracked condensed name, cards only in the main column (sidebar entries stay open) */
+.tpl-professional-wharf { --c-date: #5b6472; }
+.rpage.tpl-professional-wharf.hv-leftbar .name { letter-spacing: .04em; }
+.rpage.tpl-professional-wharf.ev-card .col-side .entry { padding: 0; background: none; }
+.tpl-professional-wharf .sec-title h2 { letter-spacing: .1em; }
+.tpl-professional-wharf .bar { height: 4px; border-radius: 0; }
+.tpl-professional-wharf .bar-fill { border-radius: 0; }
+
+/* Bay — DM Serif Display only ships a regular weight: keep titles regular instead of faux bold */
+.tpl-professional-bay { --photo-bw: 3px; }
+.tpl-professional-bay .sec-title h2 { font-weight: 400; letter-spacing: .12em; }
+.rpage.tpl-professional-bay.ts-ruled-both .col-side .sec-title h2 { letter-spacing: .07em; }
+.tpl-professional-bay .dots { gap: 3px; }
+.tpl-professional-bay .dots i { width: 7px; height: 7px; }
+
+/* Tide — deep navy name to match the sidebar */
+.tpl-professional-tide { --c-name: color-mix(in srgb, var(--accent) 35%, #0b1220); }
+.rpage.tpl-professional-tide.ts-underline-short .sec-line { width: 34px; }
+
+/* Jetty — pill titles become full-width charcoal bands */
+.rpage.tpl-professional-jetty.ts-pill .sec-title h2 { display: block; padding: .36em .85em .3em; border-radius: 1px; letter-spacing: .16em; font-size: calc(var(--fs) * .92 * var(--title-scale, 1)); }
+.rpage.tpl-professional-jetty.ts-pill .col > .sec-title + .blk { margin-top: calc(var(--gap) * .8); }
