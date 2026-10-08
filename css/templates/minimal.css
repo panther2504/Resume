@@ -4,3 +4,116 @@
    - To tweak something a knob controls, qualify with the knob class so it switches off when the user
      overrides that knob: .tpl-x.hv-band .name { … }   .tpl-x.ts-pill .sec-title h2 { … }
    - Never put visible content in ::before/::after, never change .page/.pg-cols/.col sizes or positions. */
+
+/* Vellum — split header sitting on a hairline, light name, tracked titles trailed by neutral hairlines */
+.tpl-minimal-vellum { --c-line-soft: color-mix(in srgb, var(--accent) 20%, #e5e7eb); --c-date: #6b7280; }
+.tpl-minimal-vellum .name { letter-spacing: -.025em; }
+.tpl-minimal-vellum .sec-title h2 { font-weight: 600; letter-spacing: .2em; }
+.tpl-minimal-vellum .entry-title { font-weight: 600; }
+.tpl-minimal-vellum.hv-split .hdr-top { margin: 0 var(--pad); padding: var(--pad) 0 5mm; border-bottom: 1px solid var(--c-line-soft); }
+.tpl-minimal-vellum.hv-split.cv-inline .hdr-top .ci-sep { display: none; }
+.tpl-minimal-vellum.hv-split .hdr-top .contacts { border-left-width: 1px; border-left-color: var(--c-line-soft); gap: .3em; font-size: calc(var(--fs) * .86); }
+.tpl-minimal-vellum.rs-caps .role { font-size: calc(var(--fs) * .8); font-weight: 500; letter-spacing: .26em; margin-top: .8em; }
+
+/* Quill — all-serif; italic name, sentence-case accent titles, italic dates */
+.tpl-minimal-quill { --c-date: #6b7280; }
+.tpl-minimal-quill .name { font-style: italic; letter-spacing: -.01em; }
+.tpl-minimal-quill.hv-plain-left .hdr-top { padding-top: calc(var(--pad) * 1.2); padding-bottom: calc(var(--pad) * .5); }
+.tpl-minimal-quill.ts-plain-bold .sec-title h2 { color: var(--c-title); font-weight: 600; }
+.tpl-minimal-quill .entry-date { font-style: italic; font-weight: 400; font-size: calc(var(--fs) * .9); }
+.tpl-minimal-quill .entry-title { font-weight: 600; }
+
+/* Folio — white sidebar split by a neutral hairline, header on top of it, small dots, muted contact icons */
+.tpl-minimal-folio { --side-rule: #e5e7eb; --col-pt: calc(var(--pad) * 1.15); --c-date: #6b7280; }
+.tpl-minimal-folio .sec-title h2 { font-weight: 600; letter-spacing: .22em; }
+.tpl-minimal-folio .entry-title { font-weight: 700; }
+.tpl-minimal-folio.hv-plain-left .hdr-side { padding-bottom: 6mm; border-bottom: 1px solid var(--c-rule); }
+.tpl-minimal-folio.cv-stacked .ci-ico { color: var(--c-date); }
+.tpl-minimal-folio .hdr-side .contacts { font-size: calc(var(--fs) * .84); }
+.tpl-minimal-folio .dots { gap: 3px; }
+.tpl-minimal-folio .dots i { width: 6px; height: 6px; }
+
+/* Margin — light numbers before the titles, ruled entries, hairline skill bars, grey contact icons */
+.tpl-minimal-margin { --c-line-soft: color-mix(in srgb, var(--accent) 16%, #e5e7eb); --c-rule: #eceef2; --c-date: #6b7280; }
+.tpl-minimal-margin.ts-numbered .sec-num { font-weight: 300; }
+.tpl-minimal-margin .sec-title h2 { font-weight: 500; letter-spacing: .16em; }
+.tpl-minimal-margin .col-side .sec-title h2 { letter-spacing: .1em; }
+.tpl-minimal-margin .entry-title { font-weight: 600; }
+.tpl-minimal-margin.hv-photo-right .hdr-top { padding-top: calc(var(--pad) * 1.15); }
+.tpl-minimal-margin.cv-icons .ci-ico { color: var(--c-date); }
+.tpl-minimal-margin .bar { height: 3px; }
+
+/* Graphite — near-monochrome; one-line header on an ink hairline, 1px title rules, square outlined chips, thin top rule */
+.tpl-minimal-graphite { --c-line-soft: #d4d4d8; --c-chip-line: color-mix(in srgb, var(--accent) 40%, #d4d4d8); --c-date: #52525b; }
+.tpl-minimal-graphite.pd-top-stripe { --decor-w: 1.6mm; }
+.tpl-minimal-graphite.nc-upper .name { letter-spacing: .08em; }
+.tpl-minimal-graphite.hv-compact .hdr-top { margin: 0 var(--pad); padding: calc(var(--pad) * 1.05) 0 4mm; border-bottom: 1px solid var(--c-ink); }
+.tpl-minimal-graphite.ts-underline-full .sec-line { height: 1px; margin-top: 3px; background: var(--c-line-soft); }
+.tpl-minimal-graphite .sec-title h2 { font-weight: 600; letter-spacing: .14em; }
+.tpl-minimal-graphite .entry-title { font-weight: 600; }
+.tpl-minimal-graphite.cs-outline .chip { border-radius: 2px; }
+.tpl-minimal-graphite.ev-compact .col-main .entry-main { flex: 1 1 auto; }
+
+/* Deckle — wide-tracked light caps, hairline overline titles, soft inset frame */
+.tpl-minimal-deckle { --decor-c: color-mix(in srgb, var(--accent) 38%, #fff); --c-line: color-mix(in srgb, var(--accent) 45%, #fff); --c-date: #6b7280; }
+.tpl-minimal-deckle.nc-upper .name { letter-spacing: .2em; }
+.tpl-minimal-deckle.hv-centered .hdr-top { padding-top: calc(var(--pad) * 1.05); gap: 2mm; }
+.tpl-minimal-deckle.rs-caps .role { font-size: calc(var(--fs) * .8); letter-spacing: .32em; font-weight: 500; margin-top: .9em; }
+.tpl-minimal-deckle.ts-overline .sec-title { border-top-width: 1px; padding-top: 2.4mm; }
+.tpl-minimal-deckle .sec-title h2 { font-weight: 500; letter-spacing: .24em; }
+
+/* Nib — hairline strokes: thin bars beside the name and titles, 1px timeline with small open dots */
+.tpl-minimal-nib { --c-tl: color-mix(in srgb, var(--accent) 35%, #fff); --c-date: #6b7280; }
+.tpl-minimal-nib.hv-leftbar .hdr-top .hdr-text { border-left-width: 2px; padding-left: 5mm; }
+.tpl-minimal-nib.ts-bar-left .sec-title { border-left-width: 2px; padding-left: 3.2mm; }
+.tpl-minimal-nib .sec-title h2 { letter-spacing: .14em; }
+.tpl-minimal-nib.ev-timeline .col-main .entry { border-left-width: 1px; padding-left: 17px; }
+.tpl-minimal-nib.ev-timeline .col-main .tl-dot { left: -5px; width: 9px; height: 9px; border-width: 2px; }
+.tpl-minimal-nib.cv-icons .ci-ico { color: var(--c-date); }
+
+/* Quire — barely-tinted sidebar with a hairline edge, Garamond name and titles between hairlines */
+.tpl-minimal-quire { --side-soft: color-mix(in srgb, var(--accent) 4%, #fafaf9); --side-edge: color-mix(in srgb, var(--accent) 30%, #fff); --c-line: color-mix(in srgb, var(--accent) 35%, #fff); --col-pt: calc(var(--pad) * 1.15); --c-date: #4b5563; }
+.tpl-minimal-quire.sv-bordered.layout-right .col-side, .tpl-minimal-quire.sv-bordered.layout-left .col-main { border-left-width: 1px; }
+.tpl-minimal-quire .sec-title h2 { font-weight: 500; letter-spacing: .18em; }
+.tpl-minimal-quire .col-side .sec-title h2 { letter-spacing: .1em; }
+.tpl-minimal-quire .entry-title { font-weight: 600; }
+.tpl-minimal-quire.hv-centered .hdr-side { padding-bottom: 2mm; }
+
+/* Kraft — warm paper-tinted header, perforation-dotted title rules, kraft label chips */
+.tpl-minimal-kraft { --gap: calc(var(--gap-base, 16px) * .86); --head-tint: color-mix(in srgb, var(--accent) 9%, #fbf8f3); --c-line: color-mix(in srgb, var(--accent) 55%, #fff); --c-chip-bg: color-mix(in srgb, var(--accent) 11%, #fbf8f3); --c-date: #6b7280; }
+.tpl-minimal-kraft.hv-tinted .pg-header { border-bottom-color: color-mix(in srgb, var(--accent) 22%, #fff); }
+.tpl-minimal-kraft.hv-tinted .hdr-top { padding-top: calc(var(--pad) * .95); padding-bottom: calc(var(--pad) * .6); gap: 3mm 5.5mm; }
+.tpl-minimal-kraft .sec-title h2 { font-weight: 400; letter-spacing: .16em; }
+.tpl-minimal-kraft.ts-dotted .sec-line { margin-top: 3px; }
+.tpl-minimal-kraft .entry-title { font-weight: 600; }
+
+/* Carbon — typewritten: monospace name, titles, entry titles and dates over a serif body; ink hairline under the header */
+.tpl-minimal-carbon { --gap: calc(var(--gap-base, 16px) * .9); --c-date: #4b5563; }
+.tpl-minimal-carbon .name { letter-spacing: -.03em; }
+.tpl-minimal-carbon.hv-underline .hdr-top { border-bottom-width: 1px; border-bottom-color: var(--c-ink); padding-bottom: 4mm; }
+.tpl-minimal-carbon .sec-title h2 { font-weight: 500; letter-spacing: .12em; }
+.tpl-minimal-carbon.ts-underline-short .sec-line { width: 22px; height: 1.5px; margin-top: 4px; border-radius: 0; }
+.tpl-minimal-carbon .entry-title { font-family: var(--font-head); font-weight: 500; font-size: calc(var(--fs) * .96); letter-spacing: -.01em; }
+.tpl-minimal-carbon .entry-date { font-family: var(--font-head); font-weight: 400; font-size: calc(var(--fs) * .8); }
+.tpl-minimal-carbon.cv-text-labels .ci-lbl { font-family: var(--font-head); font-weight: 500; font-size: .86em; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Bristol — hairline-boxed header, faint rounded cards, centered titles over a short hairline */
+.tpl-minimal-bristol { --c-card: color-mix(in srgb, var(--accent) 5%, #f9fafb); --c-line: color-mix(in srgb, var(--accent) 45%, #fff); --c-date: #4b5563; }
+.tpl-minimal-bristol.hv-boxed .hdr-top { border-width: 1px; border-color: var(--c-line-soft); border-radius: 2px; padding: 5.5mm 7mm; }
+.tpl-minimal-bristol .sec-title h2 { font-weight: 500; letter-spacing: .2em; }
+.tpl-minimal-bristol.ts-centered .sec-line { width: 24px; height: 1px; }
+.tpl-minimal-bristol.ev-card .entry { border-radius: 4px; }
+.tpl-minimal-bristol .entry-title { font-weight: 600; }
+.tpl-minimal-bristol.cv-icons .ci-ico { color: var(--c-date); }
+.tpl-minimal-bristol .bar { height: 4px; }
+.tpl-minimal-bristol.ev-card .col-side .entry { padding: 0; background: transparent; border-radius: 0; }
+
+/* Linen — linen-tinted sidebar, soft borderless title strips, outlined date tags, display-serif name */
+.tpl-minimal-linen { --side-tint: color-mix(in srgb, var(--accent) 6%, #faf7f2); --c-date: #4b5563; }
+.tpl-minimal-linen.hv-centered .hdr-top { padding-top: calc(var(--pad) * 1.1); padding-bottom: calc(var(--pad) * .6); }
+.tpl-minimal-linen .sec-title h2 { font-weight: 400; letter-spacing: .16em; }
+.tpl-minimal-linen.ts-boxed .sec-title { border: 0; border-radius: 0; padding: 1.3mm 2.6mm 1.1mm; }
+.tpl-minimal-linen.ev-date-pill .entry-date { background: transparent; color: var(--c-acc); border: 1px solid var(--c-line-soft); border-radius: 999px; padding: calc(.1em - 1px) calc(.65em - 1px); }
+.tpl-minimal-linen .entry-title { font-weight: 600; }
+.tpl-minimal-linen.ev-date-pill .col-side .entry-head { flex-direction: column; align-items: flex-start; gap: .3em; }
+.tpl-minimal-linen.sv-tint .col-side { --c-chip-bg: #fff; }
