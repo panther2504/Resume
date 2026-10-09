@@ -8,3 +8,71 @@
 /* Nova (reference) */
 .tpl-modern-nova .name { letter-spacing: -.02em; }
 .tpl-modern-nova.hv-centered .hdr-side .contacts { margin-top: 2mm; }
+
+/* ---------- Orbit: name and photo on a solid accent sidebar ---------- */
+.tpl-modern-orbit .name { letter-spacing: -.025em; }
+.tpl-modern-orbit.sv-accent { --photo-bw: 3px; }
+
+/* ---------- Zenith: gradient band, date column ---------- */
+.tpl-modern-zenith { --c-date: var(--accent); --date-w: 24mm; }
+.tpl-modern-zenith.dn-normal { --gap: calc(var(--gap-base, 16px) * .86); }
+.tpl-modern-zenith .name { letter-spacing: -.015em; }
+.tpl-modern-zenith.hv-gradient { --photo-bw: 3px; }
+.tpl-modern-zenith.hv-gradient .hdr-top { padding: calc(var(--pad) * .9) var(--pad); column-gap: 7mm; }
+.tpl-modern-zenith.ev-date-left .col-main .entry-date { text-wrap: balance; }
+
+/* ---------- Halo: centered band, dark right sidebar, overline titles ---------- */
+.tpl-modern-halo.hv-band-centered .name { letter-spacing: .07em; }
+/* darker translucent contact pills keep white text above 4.5:1 on the band */
+.tpl-modern-halo.hv-band-centered.cv-pills .pg-header { --c-chip-bg: rgba(0, 0, 0, .2); }
+.tpl-modern-halo.ts-overline .sec-title { border-top-width: 2px; }
+
+/* ---------- Comet: split header, coral pills, timeline ---------- */
+.tpl-modern-comet { --c-tl: color-mix(in srgb, var(--accent) 22%, #fff); }
+.tpl-modern-comet .name { letter-spacing: -.02em; }
+.tpl-modern-comet.hv-split .hdr-top .contacts { border-left-width: 3px; }
+.tpl-modern-comet.ts-pill .sec-title h2 { letter-spacing: .14em; padding: .36em 1.15em .3em; }
+
+/* ---------- Polaris: charcoal sidebar, coral identity block ---------- */
+.tpl-modern-polaris .name { letter-spacing: .03em; line-height: 1.02; }
+/* full white role and contacts on the coral block (translucent white drops below 4.5:1 there) */
+.tpl-modern-polaris.hv-band .hdr-side { --c-role: #fff; --c-sub: #fff; }
+.tpl-modern-polaris.rs-caps .hdr-side .role { letter-spacing: .12em; }
+.tpl-modern-polaris .col-side > .skill + .skill { margin-top: calc(var(--gap) * .45); }
+
+/* ---------- Quasar: underline header, gradient right sidebar ---------- */
+.tpl-modern-quasar .name { letter-spacing: -.01em; }
+/* the header rule runs to the right page edge and caps the (colored) sidebar */
+.tpl-modern-quasar.hv-underline.layout-right:not(.sv-plain, .sv-none) .hdr-top { margin-right: 0; padding-right: var(--pad); }
+
+/* ---------- Lyra: tinted header flowing into a tinted sidebar ---------- */
+.tpl-modern-lyra.hv-tinted.sv-tint .pg-header { border-bottom-color: transparent; }
+.tpl-modern-lyra .entry-title { font-family: var(--font-head); font-weight: 800; }
+
+/* ---------- Vega: photo right, emerald edge stripe, bar titles ---------- */
+.tpl-modern-vega.dn-normal { --gap: calc(var(--gap-base, 16px) * .86); }
+.tpl-modern-vega .name { letter-spacing: -.025em; }
+.tpl-modern-vega.ts-bar-left .sec-title { border-left-width: 5px; }
+
+/* ---------- Eclipse: cobalt band, open sidebar, timeline ---------- */
+.tpl-modern-eclipse { --decor-c: var(--accent-2); }
+.tpl-modern-eclipse .name { letter-spacing: -.02em; }
+.tpl-modern-eclipse.ts-plain-bold .sec-title h2 { font-weight: 800; }
+
+/* ---------- Meridian: accent bar header, dotted rules, plain right sidebar ---------- */
+.tpl-modern-meridian { --date-w: 21mm; --c-date: var(--accent); }
+.tpl-modern-meridian .name { letter-spacing: -.01em; }
+.tpl-modern-meridian.hv-leftbar .hdr-top .hdr-text { border-left-width: 7px; }
+.tpl-modern-meridian.ev-date-left .col-main .entry-date { text-wrap: balance; }
+.tpl-modern-meridian .bar { height: 3px; }
+
+/* ---------- Corona: framed identity card on an accent-edged sidebar ---------- */
+.tpl-modern-corona.hv-boxed .hdr-side { padding: 5mm 3.5mm 4.5mm; border-width: 1px; border-radius: 6px; background: var(--c-card); }
+.tpl-modern-corona.hv-boxed .hdr-side .contacts { font-size: calc(var(--fs) * .86); }
+.tpl-modern-corona.ts-underline-short .sec-line { width: 34px; height: 3px; }
+
+/* ---------- Sirius: compact header, boxed titles, one-line entries ---------- */
+.tpl-modern-sirius .name { letter-spacing: -.01em; }
+.tpl-modern-sirius.ts-boxed .sec-title h2 { letter-spacing: .12em; }
+/* let the title | company line use the full width so short titles never wrap */
+.tpl-modern-sirius.ev-compact .col-main .entry-main { flex: 1 1 auto; }
